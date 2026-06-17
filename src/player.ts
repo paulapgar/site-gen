@@ -1,20 +1,29 @@
 import { Actor, Collider, CollisionContact, Engine, Side, vec } from "excalibur";
-import { Resources } from "./resources";
+import { getResource } from "./resources";
 
-// Actors are the main unit of composition you'll likely use, anything that you want to draw and move around the screen
-// is likely built with an actor
+/**
+ * Actors are the main unit of composition you'll likely use, anything that you want to draw and move around the screen
+ * is likely built with an actor
+ *
+ * They contain a bunch of useful components that you might use:
+ * - actor.transform
+ * - actor.motion
+ * - actor.graphics
+ * - actor.body
+ * - actor.collider
+ * - actor.actions
+ * - actor.pointer
+ */
 
-// They contain a bunch of useful components that you might use
-// actor.transform
-// actor.motion
-// actor.graphics
-// actor.body
-// actor.collider
-// actor.actions
-// actor.pointer
-
-
+/**
+ * Represents the player character in the game.
+ * Handles player movement, rendering, and collision interactions.
+ */
 export class Player extends Actor {
+  /**
+   * Creates a new Player instance.
+   * Initializes the player with default position, size, and visual resources.
+   */
   constructor() {
     super({
       // Giving your actor a name is optional, but helps in debugging using the dev tools or debug mode
@@ -31,7 +40,18 @@ export class Player extends Actor {
     
   }
 
-  override onInitialize() {
+  /**
+   * Called when the actor is initialized.
+   * This runs before the first update and is useful for:
+   * 1. Loading resources like Images for graphics
+   * 2. Ensuring Excalibur is initialized & started
+   * 3. Deferring logic to runtime instead of constructor time
+   * 4. Lazy instantiation
+   *
+   * @remarks
+   * This method is called once per actor instance before the game loop begins.
+   */
+  override onInitialize(): void {
     // Generally recommended to stick logic in the "On initialize"
     // This runs before the first update
     // Useful when
@@ -39,7 +59,7 @@ export class Player extends Actor {
     // 2. You need excalibur to be initialized & started 
     // 3. Deferring logic to run time instead of constructor time
     // 4. Lazy instantiation
-    this.graphics.add(Resources.Sword.toSprite());
+    this.graphics.add(getResource("Sword").toSprite());
 
     // Actions are useful for scripting common behavior, for example patrolling enemies
     this.actions.delay(2000);
@@ -60,26 +80,76 @@ export class Player extends Actor {
     });
   }
 
+  /**
+   * Called before the actor's built-in update logic runs.
+   * This method is invoked every frame before the actor's update methods.
+   *
+   * @param engine - The Excalibur engine instance
+   * @param elapsedMs - The time elapsed since the last update in milliseconds
+   */
   override onPreUpdate(engine: Engine, elapsedMs: number): void {
     // Put any update logic here runs every frame before Actor builtins
   }
 
+  /**
+   * Called after the actor's built-in update logic runs.
+   * This method is invoked every frame after the actor's update methods.
+   *
+   * @param engine - The Excalibur engine instance
+   * @param elapsedMs - The time elapsed since the last update in milliseconds
+   */
   override onPostUpdate(engine: Engine, elapsedMs: number): void {
     // Put any update logic here runs every frame after Actor builtins
   }
 
+  /**
+   * Called before a collision is resolved.
+   * Allows you to opt out of a specific collision by calling `contact.cancel()`.
+   *
+   * @param self - The collider belonging to this actor
+   * @param other - The collider belonging to the other actor
+   * @param side - The side of the collision
+   * @param contact - The collision contact information
+   */
   override onPreCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
     // Called before a collision is resolved, if you want to opt out of this specific collision call contact.cancel()
   }
 
+  /**
+   * Called every time a collision is resolved and overlap is solved.
+   * This is the final step in the collision resolution process.
+   *
+   * @param self - The collider belonging to this actor
+   * @param other - The collider belonging to the other actor
+   * @param side - The side of the collision
+   * @param contact - The collision contact information
+   */
   override onPostCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
     // Called every time a collision is resolved and overlap is solved
   }
 
+  /**
+   * Called when a pair of objects are in contact.
+   * This event fires when two colliders first make contact.
+   *
+   * @param self - The collider belonging to this actor
+   * @param other - The collider belonging to the other actor
+   * @param side - The side of the collision
+   * @param contact - The collision contact information
+   */
   override onCollisionStart(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
     // Called when a pair of objects are in contact
   }
 
+  /**
+   * Called when a pair of objects separate.
+   * This event fires when two colliders cease to be in contact.
+   *
+   * @param self - The collider belonging to this actor
+   * @param other - The collider belonging to the other actor
+   * @param side - The side of the collision
+   * @param lastContact - The last collision contact information before separation
+   */
   override onCollisionEnd(self: Collider, other: Collider, side: Side, lastContact: CollisionContact): void {
     // Called when a pair of objects separates
   }

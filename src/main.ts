@@ -8,7 +8,7 @@ const game = new Engine({
   width: 800, // Logical width and height in game pixels
   height: 600,
   canvasElementId: 'game-canvas', // Optional, will create a canvas if not provided
-  displayMode: DisplayMode.FitScreenAndFill, // Display mode tells excalibur how to fill the window
+  displayMode: DisplayMode.FitScreen, // Display mode tells excalibur how to fill the window
   pixelArt: true, // pixelArt will turn on the correct settings to render pixel art without jaggies or shimmering artifacts
   backgroundColor: Color.Black, // Background color of the canvas
   scenes: {

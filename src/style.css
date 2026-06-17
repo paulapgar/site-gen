@@ -1,5 +1,15 @@
+/* This might just turn to black for every mode ...
+   depends on if the palette/theme of game is dark (black background)
+   like old Ultimas, or be more colorful with its backgrounds.
+*/
+@media (prefers-color-scheme: light) {
+  body {
+    background-color: rgb(155, 155, 155);
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: black;
+    background-color: rgb(59, 59, 59);
   }
 }

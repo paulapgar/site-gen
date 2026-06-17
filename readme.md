@@ -1,17 +1,9 @@
-# Excalibur TypeScript & Vite template
+# Site Generator
 
-Check out the full documentation @ https://excaliburjs.com
+This will test out various techniques for generating sites in a fantasy world.
+This includes castles, keeps, ruins, towns, temples, etc.
 
-You can use the excalibur cli to generate this template
+Will be trying various techniques such as: Shape Grammar, Wave Form Collapse...
 
-```sh
-npm create excalibur
-```
+Vibing with local models and however long Copilot access lasts...
 
-## Getting Started
-
-1. [Generate a repository](https://github.com/excaliburjs/template-ts-vite/generate) from this template
-2. Modify the `package.json` with your own details
-3. Run `npm install` to install dependencies
-4. Run `npm run dev` to start the Vite server!
-5. Have fun!
