@@ -1,5 +1,5 @@
-import { Actor, Collider, CollisionContact, Engine, Side, vec } from "excalibur";
-import { getResource } from "./resources";
+import { Actor, Collider, CollisionContact, Engine, Side, vec } from 'excalibur';
+import { getResource } from './resources';
 
 /**
  * Actors are the main unit of composition you'll likely use, anything that you want to draw and move around the screen
@@ -37,7 +37,6 @@ export class Player extends Actor {
       // anchor: vec(0, 0), // Actors default center colliders and graphics with anchor (0.5, 0.5)
       // collisionType: CollisionType.Active, // Collision Type Active means this participates in collisions read more https://excaliburjs.com/docs/collisiontypes
     });
-    
   }
 
   /**
@@ -56,22 +55,22 @@ export class Player extends Actor {
     // This runs before the first update
     // Useful when
     // 1. You need things to be loaded like Images for graphics
-    // 2. You need excalibur to be initialized & started 
+    // 2. You need excalibur to be initialized & started
     // 3. Deferring logic to run time instead of constructor time
     // 4. Lazy instantiation
-    this.graphics.add(getResource("Sword").toSprite());
+    this.graphics.add(getResource('Sword').toSprite());
 
     // Actions are useful for scripting common behavior, for example patrolling enemies
     this.actions.delay(2000);
-    this.actions.repeatForever(ctx => {
-      ctx.moveBy({offset: vec(100, 0), duration: 1000});
-      ctx.moveBy({offset: vec(0, 100), duration: 1000});
-      ctx.moveBy({offset: vec(-100, 0), duration: 1000});
-      ctx.moveBy({offset: vec(0, -100), duration: 1000});
+    this.actions.repeatForever((ctx) => {
+      ctx.moveBy({ offset: vec(100, 0), duration: 1000 });
+      ctx.moveBy({ offset: vec(0, 100), duration: 1000 });
+      ctx.moveBy({ offset: vec(-100, 0), duration: 1000 });
+      ctx.moveBy({ offset: vec(0, -100), duration: 1000 });
     });
 
     // Sometimes you want to click on an actor!
-    this.on('pointerdown', evt => {
+    this.on('pointerdown', (evt) => {
       // Pointer events tunnel in z order from the screen down, you can cancel them!
       // if (true) {
       //   evt.cancel();
@@ -87,7 +86,7 @@ export class Player extends Actor {
    * @param engine - The Excalibur engine instance
    * @param elapsedMs - The time elapsed since the last update in milliseconds
    */
-  override onPreUpdate(engine: Engine, elapsedMs: number): void {
+  override onPreUpdate(_engine: Engine, _elapsedMs: number): void {
     // Put any update logic here runs every frame before Actor builtins
   }
 
@@ -98,7 +97,7 @@ export class Player extends Actor {
    * @param engine - The Excalibur engine instance
    * @param elapsedMs - The time elapsed since the last update in milliseconds
    */
-  override onPostUpdate(engine: Engine, elapsedMs: number): void {
+  override onPostUpdate(_engine: Engine, _elapsedMs: number): void {
     // Put any update logic here runs every frame after Actor builtins
   }
 
@@ -111,7 +110,12 @@ export class Player extends Actor {
    * @param side - The side of the collision
    * @param contact - The collision contact information
    */
-  override onPreCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
+  override onPreCollisionResolve(
+    _self: Collider,
+    _other: Collider,
+    _side: Side,
+    _contact: CollisionContact
+  ): void {
     // Called before a collision is resolved, if you want to opt out of this specific collision call contact.cancel()
   }
 
@@ -124,7 +128,12 @@ export class Player extends Actor {
    * @param side - The side of the collision
    * @param contact - The collision contact information
    */
-  override onPostCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
+  override onPostCollisionResolve(
+    _self: Collider,
+    _other: Collider,
+    _side: Side,
+    _contact: CollisionContact
+  ): void {
     // Called every time a collision is resolved and overlap is solved
   }
 
@@ -137,7 +146,12 @@ export class Player extends Actor {
    * @param side - The side of the collision
    * @param contact - The collision contact information
    */
-  override onCollisionStart(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
+  override onCollisionStart(
+    _self: Collider,
+    _other: Collider,
+    _side: Side,
+    _contact: CollisionContact
+  ): void {
     // Called when a pair of objects are in contact
   }
 
@@ -150,7 +164,12 @@ export class Player extends Actor {
    * @param side - The side of the collision
    * @param lastContact - The last collision contact information before separation
    */
-  override onCollisionEnd(self: Collider, other: Collider, side: Side, lastContact: CollisionContact): void {
+  override onCollisionEnd(
+    _self: Collider,
+    _other: Collider,
+    _side: Side,
+    _lastContact: CollisionContact
+  ): void {
     // Called when a pair of objects separates
   }
 }

@@ -2,12 +2,17 @@
   "name": "excalibur-project-template",
   "version": "1.2.0",
   "description": "Base project template for Excalibur.js games using Vite",
+  "type": "module",
   "main": "src/main.ts",
   "scripts": {
     "dev": "vite",
     "start": "vite",
     "build": "tsc && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,css}\""
   },
   "keywords": [
     "excalibur",
@@ -22,7 +27,17 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/parser": "^8.61.1",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "prettier": "^3.8.4",
     "typescript": "^6.0.3",
     "vite": "6.4.3"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
   }
 }

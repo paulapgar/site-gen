@@ -1,6 +1,6 @@
-import { Color, DisplayMode, Engine, FadeInOut } from "excalibur";
-import { loader } from "./resources";
-import { MyLevel } from "./level";
+import { Color, DisplayMode, Engine, FadeInOut } from 'excalibur';
+import { loader } from './resources';
+import { MyLevel } from './level';
 
 // Goal is to keep main.ts small and just enough to configure the engine
 
@@ -12,7 +12,7 @@ const game = new Engine({
   pixelArt: true, // pixelArt will turn on the correct settings to render pixel art without jaggies or shimmering artifacts
   backgroundColor: Color.Black, // Background color of the canvas
   scenes: {
-    start: MyLevel
+    start: MyLevel,
   },
   // physics: {
   //   solver: SolverStrategy.Realistic,
@@ -21,13 +21,17 @@ const game = new Engine({
   // fixedUpdateTimestep: 16 // Turn on fixed update timestep when consistent physic simulation is important
 });
 
-game.start('start', { // name of the start scene 'start'
-  loader, // Optional loader (but needed for loading images/sounds)
-  inTransition: new FadeInOut({ // Optional in transition
-    duration: 1000,
-    direction: 'in',
-    color: Color.ExcaliburBlue
+game
+  .start('start', {
+    // name of the start scene 'start'
+    loader, // Optional loader (but needed for loading images/sounds)
+    inTransition: new FadeInOut({
+      // Optional in transition
+      duration: 1000,
+      direction: 'in',
+      color: Color.ExcaliburBlue,
+    }),
   })
-}).then(() => {
-  // Do something after the game starts
-});
+  .then(() => {
+    // Do something after the game starts
+  });

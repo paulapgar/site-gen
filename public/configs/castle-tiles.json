@@ -1,0 +1,127 @@
+{
+  "gridWidth": 20,
+  "gridHeight": 15,
+  "symmetry": "none",
+  "tiles": [
+    {
+      "id": "wall_h",
+      "name": "Horizontal Wall Segment",
+      "spriteRef": "sprites/wall_horizontal.png",
+      "weight": 3,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["floor", "door"],
+        "left": ["wall_h", "corner_tl", "corner_bl", "t_junction_left"],
+        "right": ["wall_h", "corner_tr", "corner_br", "t_junction_right"]
+      }
+    },
+    {
+      "id": "wall_v",
+      "name": "Vertical Wall Segment",
+      "spriteRef": "sprites/wall_vertical.png",
+      "weight": 3,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["floor", "door"],
+        "left": ["wall_v", "corner_tl", "corner_tr", "t_junction_left"],
+        "right": ["wall_v", "corner_bl", "corner_br", "t_junction_right"]
+      }
+    },
+    {
+      "id": "floor",
+      "name": "Stone Floor",
+      "spriteRef": "sprites/floor_stone.png",
+      "weight": 5,
+      "neighbors": {
+        "top": ["wall_h", "wall_v", "floor"],
+        "bottom": ["wall_h", "wall_v", "floor"],
+        "left": ["wall_h", "wall_v", "floor"],
+        "right": ["wall_h", "wall_v", "floor"]
+      }
+    },
+    {
+      "id": "door",
+      "name": "Door",
+      "spriteRef": "sprites/door.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["wall_h", "wall_v"],
+        "bottom": ["floor"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["wall_h", "wall_v"]
+      }
+    },
+    {
+      "id": "corner_tl",
+      "name": "Corner Top-Left",
+      "spriteRef": "sprites/corner_tl.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["floor", "door"]
+      }
+    },
+    {
+      "id": "corner_tr",
+      "name": "Corner Top-Right",
+      "spriteRef": "sprites/corner_tr.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["floor", "door"],
+        "right": ["wall_h", "wall_v"]
+      }
+    },
+    {
+      "id": "corner_bl",
+      "name": "Corner Bottom-Left",
+      "spriteRef": "sprites/corner_bl.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["wall_h", "wall_v"],
+        "bottom": ["floor", "door"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["floor", "door"]
+      }
+    },
+    {
+      "id": "corner_br",
+      "name": "Corner Bottom-Right",
+      "spriteRef": "sprites/corner_br.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["wall_h", "wall_v"],
+        "bottom": ["floor", "door"],
+        "left": ["floor", "door"],
+        "right": ["wall_h", "wall_v"]
+      }
+    },
+    {
+      "id": "t_junction_left",
+      "name": "T-Junction Left",
+      "spriteRef": "sprites/t_junction_left.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["wall_h", "wall_v", "floor"],
+        "right": ["floor", "door"]
+      }
+    },
+    {
+      "id": "t_junction_right",
+      "name": "T-Junction Right",
+      "spriteRef": "sprites/t_junction_right.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["floor", "door"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["floor", "door"],
+        "right": ["wall_h", "wall_v", "floor"]
+      }
+    }
+  ]
+}

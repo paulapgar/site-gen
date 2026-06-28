@@ -33,6 +33,9 @@ Purpose: brief, repo-level guidance for the coding assistant. Limit changes to a
 
 - Assume a file-watcher or hot-reload is enabled and the developer will reload the app as needed; do not instruct the user to launch or restart the app unless the change modifies startup scripts or run configuration.
 
+## Documentation folder
+The /docs folder is for documentation.  Access the README.md there for instructions on how to build and view the docs.  Do not edit the /docs folder unless you are updating or creating new documentation.
+
 ## Editing Guidelines for the Assistant
 
 - Make minimal, well-scoped changes with clear commit messages.
