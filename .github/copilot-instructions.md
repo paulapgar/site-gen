@@ -1,47 +1,46 @@
 # Copilot Instructions — Excalibur Projects
 
-Purpose: brief, repo-level guidance for the coding assistant. Limit changes to a single file and no more than 200 lines changed per commit, unless the change is explicitly approved by the maintainer.
-
-## Priority Order
+## Priority Order (resolve conflicts in this order)
 
 1. Avoid breaking runtime behavior
-2. Keep edits minimal
+2. Keep edits minimal and well-scoped
 3. Match existing conventions
-4. Enforce TypeScript strictness if it does not require cross-file changes. If rules conflict, follow the earlier item.
+4. Enforce TypeScript strictness only if it does not require cross-file changes
 
 ## TypeScript Best Practices
 
-- Prefer explicit types and avoid `any` unless temporary; use `unknown` when appropriate.
-- Enable and respect strict compiler options (`strict`, `noImplicitAny`, `strictNullChecks`).
+- Prefer explicit types; avoid `any` unless temporary, use `unknown` when appropriate.
+- Respect strict compiler options (`strict`, `noImplicitAny`, `strictNullChecks`).
 - Use `const`/`let` correctly; prefer `readonly` for immutable fields.
 - Add explicit return types for exported functions and public methods.
 - Prefer small, focused functions and single-responsibility classes.
-- Use named interfaces/types for complex shapes and re-use them across files. Only introduce or extract shared types across files when the change would otherwise duplicate >3 occurrences, and ask a clarifying question before making multi-file type moves.
-- Avoid editing compiled or distribution files in `dist/` — change source `src/` files instead.
+- Use named interfaces/types for complex shapes and reuse them across files. Only extract shared types when the change would otherwise duplicate >3 occurrences — ask before making multi-file type moves.
+- Never edit compiled or distribution files in `dist/` — change source `src/` files instead.
 
-## Excalibur Awareness
+## Excalibur.js Guidelines
 
-- This project uses Excalibur.js; prefer consulting the official docs first: https://excaliburjs.com/docs/
+- This project uses [Excalibur.js](https://excaliburjs.com/docs/). Consult the official docs first for API questions.
 - When changing engine behavior, check `src/main.ts`, `src/resources.ts`, and scene/actor files (`src/*.ts`).
-- Prefer to use methods and properties of the Excalibur built-in classes, such as Actor, when adding code to modify the behavior or state of the Actor.
-
-## Excalibur Source
-
-- https://github.com/excaliburjs/Excalibur — consult the repository for implementation details of the engine itself.
+- Prefer using methods and properties of Excalibur built-in classes (e.g., `Actor`) over workarounds when modifying actor behavior or state.
+- For implementation details of the engine itself, consult the source: https://github.com/excaliburjs/Excalibur
+- Reference patterns are available in `/memories/repo/excalibur-patterns.md` for common boilerplate (actor lifecycle, collision handling, actions).
 
 ## Testing & Running
 
-- Assume a file-watcher or hot-reload is enabled and the developer will reload the app as needed; do not instruct the user to launch or restart the app unless the change modifies startup scripts or run configuration.
+- Assume a file-watcher or hot-reload is enabled; do not instruct the user to launch or restart the app unless the change modifies startup scripts or run configuration.
 
-## Documentation folder
-The /docs folder is for documentation.  Access the README.md there for instructions on how to build and view the docs.  Do not edit the /docs folder unless you are updating or creating new documentation.
+## Documentation Folder (`/docs`)
 
-## Editing Guidelines for the Assistant
+- The `/docs` folder contains research and planning documents only.
+- Do not edit files in `/docs` unless updating or creating documentation.
+- It is not part of the runtime codebase — never reference it from source files.
 
-- Make minimal, well-scoped changes with clear commit messages.
-- If a change touches Excalibur integration (loader, engine options, lifecycle hooks), suggest how to verify it (which file to open, which page to refresh, or which test to run).
-- If a change touches any of: build configuration, engine initialization (files that include 'engine' or 'main'), third-party package versions, or more than 3 files, ask one clarifying question before making edits.
-- If a proposed change affects more than one of: engine lifecycle, resource loading, public API, or build config, ask exactly one focused clarifying question that names the affected file(s) and the decision needed.
-- If running linters or tests fails, include the failing output in your response, revert or comment out the offending change if it was speculative, and ask whether to proceed with a fix. Do not submit changes that cause CI to fail.
-- If referenced files are missing or imports fail, ask the user for the correct file path or permission to add missing resources before making changes.
-- If a fix requires changes to dependencies or build configuration (package.json, tsconfig.json, webpack), do not modify them without explicit approval; instead propose the change and provide the minimal diff and verification steps.
+## Editing Guidelines
+
+- Make minimal, well-scoped changes with clear commit messages (≤200 lines changed per commit).
+- If a change touches Excalibur integration (loader, engine options, lifecycle hooks), suggest how to verify it (which file to open or page to refresh).
+- **Ask one clarifying question before editing** if the change touches any of: build configuration (`vite.config.*`, `tsconfig.json`), engine initialization files (`main.ts`, files containing "engine"), third-party package versions, or more than 3 files.
+- If a proposed change affects multiple sensitive areas (engine lifecycle, resource loading, public API, build config), ask exactly one focused question naming the affected file(s) and the decision needed.
+- If linters or tests fail, include the failing output in your response, revert or comment out the offending speculative change, and ask whether to proceed with a fix. Do not submit changes that cause CI to fail.
+- If referenced files are missing or imports fail, ask for the correct path or permission to add resources before making changes.
+- For dependency or build config changes (`package.json`, `tsconfig.json`), do not modify them without explicit approval — propose the change with a minimal diff and verification steps instead.

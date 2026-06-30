@@ -1,4 +1,4 @@
-export { WaveFunctionCollapse } from './engine';
+export { WaveFunctionCollapse } from './wfc-engine';
 export { ConfigLoader } from './config-loader';
 export { WFCTileMapAdapter } from './excalibur-integration';
 export type {

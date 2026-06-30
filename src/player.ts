@@ -2,27 +2,14 @@ import { Actor, Collider, CollisionContact, Engine, Side, vec } from 'excalibur'
 import { getResource } from './resources';
 
 /**
- * Actors are the main unit of composition you'll likely use, anything that you want to draw and move around the screen
- * is likely built with an actor
+ * The player-controlled actor in the game.
  *
- * They contain a bunch of useful components that you might use:
- * - actor.transform
- * - actor.motion
- * - actor.graphics
- * - actor.body
- * - actor.collider
- * - actor.actions
- * - actor.pointer
- */
-
-/**
- * Represents the player character in the game.
- * Handles player movement, rendering, and collision interactions.
+ * Renders a sword sprite and performs a looping patrol animation.
+ * Responds to pointer (click) events by logging the click position.
  */
 export class Player extends Actor {
   /**
-   * Creates a new Player instance.
-   * Initializes the player with default position, size, and visual resources.
+   * Creates a new `Player` instance positioned at `(150, 150)` with a size of `100×100`.
    */
   constructor() {
     super({
@@ -40,15 +27,11 @@ export class Player extends Actor {
   }
 
   /**
-   * Called when the actor is initialized.
-   * This runs before the first update and is useful for:
-   * 1. Loading resources like Images for graphics
-   * 2. Ensuring Excalibur is initialized & started
-   * 3. Deferring logic to runtime instead of constructor time
-   * 4. Lazy instantiation
+   * Initializes the player actor before the first update frame.
    *
-   * @remarks
-   * This method is called once per actor instance before the game loop begins.
+   * Adds the sword sprite to the graphics layer and sets up a looping patrol action:
+   * move right → down → left → up, with a 2-second initial delay.
+   * Also listens for pointer-down events on the actor.
    */
   override onInitialize(): void {
     // Generally recommended to stick logic in the "On initialize"
@@ -80,35 +63,32 @@ export class Player extends Actor {
   }
 
   /**
-   * Called before the actor's built-in update logic runs.
-   * This method is invoked every frame before the actor's update methods.
+   * Runs every frame before built-in `Actor` update logic.
    *
-   * @param engine - The Excalibur engine instance
-   * @param elapsedMs - The time elapsed since the last update in milliseconds
+   * @param _engine - The Excalibur engine instance
+   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
    */
   override onPreUpdate(_engine: Engine, _elapsedMs: number): void {
     // Put any update logic here runs every frame before Actor builtins
   }
 
   /**
-   * Called after the actor's built-in update logic runs.
-   * This method is invoked every frame after the actor's update methods.
+   * Runs every frame after built-in `Actor` update logic.
    *
-   * @param engine - The Excalibur engine instance
-   * @param elapsedMs - The time elapsed since the last update in milliseconds
+   * @param _engine - The Excalibur engine instance
+   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
    */
   override onPostUpdate(_engine: Engine, _elapsedMs: number): void {
     // Put any update logic here runs every frame after Actor builtins
   }
 
   /**
-   * Called before a collision is resolved.
-   * Allows you to opt out of a specific collision by calling `contact.cancel()`.
+   * Called before a collision is resolved between this actor and another collider.
    *
-   * @param self - The collider belonging to this actor
-   * @param other - The collider belonging to the other actor
-   * @param side - The side of the collision
-   * @param contact - The collision contact information
+   * @param _self - The collider of this actor
+   * @param _other - The collider of the other actor involved in the collision
+   * @param _side - The side of contact on this actor's collider
+   * @param _contact - The collision contact information
    */
   override onPreCollisionResolve(
     _self: Collider,
@@ -121,12 +101,11 @@ export class Player extends Actor {
 
   /**
    * Called every time a collision is resolved and overlap is solved.
-   * This is the final step in the collision resolution process.
    *
-   * @param self - The collider belonging to this actor
-   * @param other - The collider belonging to the other actor
-   * @param side - The side of the collision
-   * @param contact - The collision contact information
+   * @param _self - The collider of this actor
+   * @param _other - The collider of the other actor involved in the collision
+   * @param _side - The side of contact on this actor's collider
+   * @param _contact - The collision contact information
    */
   override onPostCollisionResolve(
     _self: Collider,
@@ -138,13 +117,12 @@ export class Player extends Actor {
   }
 
   /**
-   * Called when a pair of objects are in contact.
-   * This event fires when two colliders first make contact.
+   * Called when this actor first comes into contact with another collider.
    *
-   * @param self - The collider belonging to this actor
-   * @param other - The collider belonging to the other actor
-   * @param side - The side of the collision
-   * @param contact - The collision contact information
+   * @param _self - The collider of this actor
+   * @param _other - The collider of the other actor involved in the collision
+   * @param _side - The side of contact on this actor's collider
+   * @param _contact - The collision contact information
    */
   override onCollisionStart(
     _self: Collider,
@@ -156,13 +134,12 @@ export class Player extends Actor {
   }
 
   /**
-   * Called when a pair of objects separate.
-   * This event fires when two colliders cease to be in contact.
+   * Called when this actor separates from another collider.
    *
-   * @param self - The collider belonging to this actor
-   * @param other - The collider belonging to the other actor
-   * @param side - The side of the collision
-   * @param lastContact - The last collision contact information before separation
+   * @param _self - The collider of this actor
+   * @param _other - The collider of the other actor involved in the collision
+   * @param _side - The side of contact on this actor's collider
+   * @param _lastContact - The last known collision contact information
    */
   override onCollisionEnd(
     _self: Collider,
