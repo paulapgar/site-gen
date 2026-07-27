@@ -1,6 +1,6 @@
 {
   "gridWidth": 20,
-  "gridHeight": 15,
+  "gridHeight": 20,
   "symmetry": "none",
   "tiles": [
     {
@@ -9,8 +9,8 @@
       "spriteRef": "sprites/wall_horizontal.png",
       "weight": 3,
       "neighbors": {
-        "top": ["floor", "door"],
-        "bottom": ["floor", "door"],
+        "top": ["floor", "archway_h"],
+        "bottom": ["floor", "archway_h"],
         "left": ["wall_h", "corner_tl", "corner_bl", "t_junction_left"],
         "right": ["wall_h", "corner_tr", "corner_br", "t_junction_right"]
       }
@@ -21,8 +21,8 @@
       "spriteRef": "sprites/wall_vertical.png",
       "weight": 3,
       "neighbors": {
-        "top": ["floor", "door"],
-        "bottom": ["floor", "door"],
+        "top": ["floor", "archway_v"],
+        "bottom": ["floor", "archway_v"],
         "left": ["wall_v", "corner_tl", "corner_tr", "t_junction_left"],
         "right": ["wall_v", "corner_bl", "corner_br", "t_junction_right"]
       }
@@ -40,12 +40,24 @@
       }
     },
     {
-      "id": "door",
-      "name": "Door",
-      "spriteRef": "sprites/door.png",
+      "id": "archway_v",
+      "name": "Vertical Archway",
+      "spriteRef": "sprites/archway_vertical.png",
       "weight": 1,
       "neighbors": {
         "top": ["wall_h", "wall_v"],
+        "bottom": ["floor"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["wall_h", "wall_v"]
+      }
+    },
+    {
+      "id": "archway_h",
+      "name": "Horizontal Archway",
+      "spriteRef": "sprites/archway_horizontal.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["floor"],
         "bottom": ["floor"],
         "left": ["wall_h", "wall_v"],
         "right": ["wall_h", "wall_v"]
@@ -105,10 +117,10 @@
       "spriteRef": "sprites/t_junction_left.png",
       "weight": 2,
       "neighbors": {
-        "top": ["floor", "door"],
+        "top": ["floor", "archway_h"],
         "bottom": ["wall_h", "wall_v"],
         "left": ["wall_h", "wall_v", "floor"],
-        "right": ["floor", "door"]
+        "right": ["floor", "archway_v"]
       }
     },
     {
@@ -117,10 +129,82 @@
       "spriteRef": "sprites/t_junction_right.png",
       "weight": 2,
       "neighbors": {
-        "top": ["floor", "door"],
+        "top": ["floor", "archway_h"],
         "bottom": ["wall_h", "wall_v"],
-        "left": ["floor", "door"],
+        "left": ["floor", "archway_v"],
         "right": ["wall_h", "wall_v", "floor"]
+      }
+    },
+    {
+      "id": "t_junction_up",
+      "name": "T-Junction Up",
+      "spriteRef": "sprites/t_junction_up.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["floor", "archway_h"],
+        "bottom": ["wall_h", "wall_v", "floor"],
+        "left": ["wall_h", "wall_v", "floor"],
+        "right": ["wall_h", "wall_v", "floor"]
+      }
+    },
+    {
+      "id": "t_junction_down",
+      "name": "T-Junction Down",
+      "spriteRef": "sprites/t_junction_down.png",
+      "weight": 2,
+      "neighbors": {
+        "top": ["wall_h", "wall_v", "floor"],
+        "bottom": ["floor", "archway_h"],
+        "left": ["wall_h", "wall_v", "floor"],
+        "right": ["wall_h", "wall_v", "floor"]
+      }
+    },
+    {
+      "id": "turret_tl",
+      "name": "Turret Top-Left",
+      "spriteRef": "sprites/turret_tl.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["floor", "archway_h"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["floor", "archway_v"]
+      }
+    },
+    {
+      "id": "turret_tr",
+      "name": "Turret Top-Right",
+      "spriteRef": "sprites/turret_tr.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["floor", "archway_h"],
+        "bottom": ["wall_h", "wall_v"],
+        "left": ["floor", "archway_v"],
+        "right": ["wall_h", "wall_v"]
+      }
+    },
+    {
+      "id": "turret_bl",
+      "name": "Turret Bottom-Left",
+      "spriteRef": "sprites/turret_bl.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["wall_h", "wall_v"],
+        "bottom": ["floor", "archway_h"],
+        "left": ["wall_h", "wall_v"],
+        "right": ["floor", "archway_v"]
+      }
+    },
+    {
+      "id": "turret_br",
+      "name": "Turret Bottom-Right",
+      "spriteRef": "sprites/turret_br.png",
+      "weight": 1,
+      "neighbors": {
+        "top": ["wall_h", "wall_v"],
+        "bottom": ["floor", "archway_h"],
+        "left": ["floor", "archway_v"],
+        "right": ["wall_h", "wall_v"]
       }
     }
   ]
