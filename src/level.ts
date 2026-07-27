@@ -2,9 +2,14 @@ import {
   DefaultLoader,
   Engine,
   ExcaliburGraphicsContext,
+  Rectangle,
   Scene,
   SceneActivationContext,
+  TileMap,
+  Vector,
 } from 'excalibur';
+import { Resources } from './resources';
+import { colorSquares } from './util/sprites';
 
 /**
  * The primary game scene.
@@ -18,10 +23,29 @@ export class MyLevel extends Scene {
    *
    * @param _engine - The Excalibur engine instance
    */
-  override onInitialize(_engine: Engine): void {
-    // Scene.onInitialize is where we recommend you perform the composition for your game
-    //const player = new Player();
-    //this.add(player); // Actors need to be added to a scene to be drawn
+  override onInitialize(engine: Engine): void {
+    const tileSize = 8;
+    const mapSize = 20;
+    const tileMap = new TileMap({
+      columns: mapSize,
+      rows: mapSize,
+      tileWidth: tileSize,
+      tileHeight: tileSize,
+      pos: new Vector(
+        (engine.screen.width - mapSize * tileSize) / 2,
+        (engine.screen.height - mapSize * tileSize) / 2
+      ),
+    });
+    const colors = colorSquares
+      .map(({ name }) => Resources[name])
+      .filter((resource): resource is Rectangle => resource instanceof Rectangle);
+
+    for (const tile of tileMap.tiles) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      tile.addGraphic(color);
+    }
+
+    this.add(tileMap);
   }
 
   /**
