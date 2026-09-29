@@ -1,6 +1,6 @@
 {
-  "gridWidth": 8,
-  "gridHeight": 8,
+  "gridWidth": 20,
+  "gridHeight": 20,
   "tiles": [
     {
       "name": "wall_h",
@@ -13,314 +13,84 @@
       "col": 1
     },
     {
-      "name": "wall_corner",
-      "row": 0,
-      "col": 2
-    },
-    {
-      "name": "wall_t",
-      "row": 0,
-      "col": 3
-    },
-    {
-      "name": "wall_cross",
-      "row": 0,
-      "col": 4
-    },
-    {
       "name": "floor",
       "row": 0,
-      "col": 5
+      "col": 2
     },
     {
-      "name": "door",
+      "name": "archway_h",
       "row": 0,
-      "col": 6
+      "col": 3
     },
     {
-      "name": "stairs",
+      "name": "archway_v",
       "row": 0,
-      "col": 7
+      "col": 4
     },
     {
-      "name": "pillar",
+      "name": "corner_br",
       "row": 1,
       "col": 0
     },
     {
-      "name": "pillar_corner",
+      "name": "corner_bl",
       "row": 1,
       "col": 1
     },
     {
-      "name": "pillar_t",
+      "name": "corner_tr",
       "row": 1,
       "col": 2
     },
     {
-      "name": "pillar_cross",
+      "name": "corner_tl",
       "row": 1,
       "col": 3
     },
     {
-      "name": "pillar_floor",
+      "name": "t_junction_right",
       "row": 1,
       "col": 4
     },
     {
-      "name": "pillar_door",
-      "row": 1,
-      "col": 5
-    },
-    {
-      "name": "pillar_stairs",
-      "row": 1,
-      "col": 6
-    },
-    {
-      "name": "pillar_wall",
-      "row": 1,
-      "col": 7
-    },
-    {
-      "name": "ceiling",
+      "name": "t_junction_left",
       "row": 2,
       "col": 0
     },
     {
-      "name": "ceiling_corner",
+      "name": "t_junction_down",
       "row": 2,
       "col": 1
     },
     {
-      "name": "ceiling_t",
+      "name": "t_junction_up",
       "row": 2,
       "col": 2
     },
     {
-      "name": "ceiling_cross",
+      "name": "turret_br",
       "row": 2,
       "col": 3
     },
     {
-      "name": "ceiling_floor",
+      "name": "turret_bl",
       "row": 2,
       "col": 4
     },
     {
-      "name": "ceiling_door",
-      "row": 2,
-      "col": 5
-    },
-    {
-      "name": "ceiling_stairs",
-      "row": 2,
-      "col": 6
-    },
-    {
-      "name": "ceiling_wall",
-      "row": 2,
-      "col": 7
-    },
-    {
-      "name": "corner",
+      "name": "turret_tr",
       "row": 3,
       "col": 0
     },
     {
-      "name": "corner_t",
+      "name": "turret_tl",
       "row": 3,
       "col": 1
     },
     {
-      "name": "corner_cross",
+      "name": "grass",
       "row": 3,
       "col": 2
-    },
-    {
-      "name": "corner_floor",
-      "row": 3,
-      "col": 3
-    },
-    {
-      "name": "corner_door",
-      "row": 3,
-      "col": 4
-    },
-    {
-      "name": "corner_stairs",
-      "row": 3,
-      "col": 5
-    },
-    {
-      "name": "corner_wall",
-      "row": 3,
-      "col": 6
-    },
-    {
-      "name": "corner_ceiling",
-      "row": 3,
-      "col": 7
-    },
-    {
-      "name": "t_shape",
-      "row": 4,
-      "col": 0
-    },
-    {
-      "name": "t_shape_floor",
-      "row": 4,
-      "col": 1
-    },
-    {
-      "name": "t_shape_door",
-      "row": 4,
-      "col": 2
-    },
-    {
-      "name": "t_shape_stairs",
-      "row": 4,
-      "col": 3
-    },
-    {
-      "name": "t_shape_wall",
-      "row": 4,
-      "col": 4
-    },
-    {
-      "name": "t_shape_ceiling",
-      "row": 4,
-      "col": 5
-    },
-    {
-      "name": "t_shape_corner",
-      "row": 4,
-      "col": 6
-    },
-    {
-      "name": "t_shape_cross",
-      "row": 4,
-      "col": 7
-    },
-    {
-      "name": "cross",
-      "row": 5,
-      "col": 0
-    },
-    {
-      "name": "cross_floor",
-      "row": 5,
-      "col": 1
-    },
-    {
-      "name": "cross_door",
-      "row": 5,
-      "col": 2
-    },
-    {
-      "name": "cross_stairs",
-      "row": 5,
-      "col": 3
-    },
-    {
-      "name": "cross_wall",
-      "row": 5,
-      "col": 4
-    },
-    {
-      "name": "cross_ceiling",
-      "row": 5,
-      "col": 5
-    },
-    {
-      "name": "cross_corner",
-      "row": 5,
-      "col": 6
-    },
-    {
-      "name": "cross_t",
-      "row": 5,
-      "col": 7
-    },
-    {
-      "name": "stairs_up",
-      "row": 6,
-      "col": 0
-    },
-    {
-      "name": "stairs_down",
-      "row": 6,
-      "col": 1
-    },
-    {
-      "name": "stairs_up_down",
-      "row": 6,
-      "col": 2
-    },
-    {
-      "name": "stairs_floor",
-      "row": 6,
-      "col": 3
-    },
-    {
-      "name": "stairs_door",
-      "row": 6,
-      "col": 4
-    },
-    {
-      "name": "stairs_wall",
-      "row": 6,
-      "col": 5
-    },
-    {
-      "name": "stairs_ceiling",
-      "row": 6,
-      "col": 6
-    },
-    {
-      "name": "stairs_corner",
-      "row": 6,
-      "col": 7
-    },
-    {
-      "name": "door_open",
-      "row": 7,
-      "col": 0
-    },
-    {
-      "name": "door_closed",
-      "row": 7,
-      "col": 1
-    },
-    {
-      "name": "door_locked",
-      "row": 7,
-      "col": 2
-    },
-    {
-      "name": "door_floor",
-      "row": 7,
-      "col": 3
-    },
-    {
-      "name": "door_wall",
-      "row": 7,
-      "col": 4
-    },
-    {
-      "name": "door_ceiling",
-      "row": 7,
-      "col": 5
-    },
-    {
-      "name": "door_corner",
-      "row": 7,
-      "col": 6
-    },
-    {
-      "name": "door_t",
-      "row": 7,
-      "col": 7
     }
   ]
 }
