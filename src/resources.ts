@@ -27,6 +27,8 @@ loadSpriteSheet('./configs/spritemap.json').then((sprites) => {
   // for (const sprite of Object.values(sprites)) {
   //   loader.addResource(sprite);
   // }
+}).catch((error: unknown) => {
+  console.error('Failed to load sprite sheet:', error);
 });
 
 for (const res of Object.values(Resources)) {

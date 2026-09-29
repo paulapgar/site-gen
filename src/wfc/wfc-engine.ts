@@ -5,7 +5,6 @@ import {
   WFCSolution,
   GridSnapshot,
   NeighborSide,
-  SymmetryMode,
 } from './types';
 import { ConfigLoader } from './config-loader';
 
@@ -35,9 +34,6 @@ export class WaveFunctionCollapse {
   /** 2D grid of cells tracking possibilities and collapse state. */
   private grid: GridCell[][];
 
-  /** Symmetry mode applied during observation. */
-  private symmetryMode: SymmetryMode;
-
   /** Maximum allowed backtracks before returning an incomplete solution. */
   private maxBacktracks: number = 1000;
 
@@ -55,7 +51,6 @@ export class WaveFunctionCollapse {
   constructor(config: WFCConfig) {
     this.gridWidth = config.gridWidth;
     this.gridHeight = config.gridHeight;
-    this.symmetryMode = config.symmetry ?? 'none';
     this.tileTypes = ConfigLoader.buildTileMapping(config);
     this.grid = this.initializeGrid();
   }
@@ -88,8 +83,8 @@ export class WaveFunctionCollapse {
 
       if (!success) {
         // Contradiction detected - try backtracking
-        if (this.snapshots.length === 0) {
-          // No backtracking path - return incomplete solution
+        if (this.snapshots.length === 0 || this.backtrackCount >= this.maxBacktracks) {
+          // No backtracking path or retry budget remains
           return {
             grid: this.grid.map((row) => row.map((cell) => cell.resolvedTileId ?? '')),
             complete: false,

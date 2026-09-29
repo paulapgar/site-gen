@@ -34,4 +34,7 @@ game
   })
   .then(() => {
     // Do something after the game starts
+  })
+  .catch((error: unknown) => {
+    console.error('Failed to start game:', error);
   });

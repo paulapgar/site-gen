@@ -1,11 +1,19 @@
 # Copilot Instructions — Excalibur Projects
 
+## Agent Behavior
+- When spawning sub-agents, request the same model as the current session; if the model cannot be chosen, use the default.
+
 ## Priority Order (resolve conflicts in this order)
 
 1. Avoid breaking runtime behavior
 2. Keep edits minimal and well-scoped
 3. Match existing conventions
 4. Enforce TypeScript strictness only if it does not require cross-file changes
+
+## Tool Usage
+
+- Prefer VS Code/Copilot tools over terminal commands.
+- Use file search, symbol navigation, editor diagnostics, and workspace tools whenever possible.
 
 ## TypeScript Best Practices
 
@@ -37,10 +45,19 @@
 
 ## Editing Guidelines
 
-- Make minimal, well-scoped changes with clear commit messages (≤200 lines changed per commit).
+- Make minimal, well-scoped changes. Do not create or suggest commit messages.
+- Create, edit, rename, and delete project files in the workspace when required by the user's request.
+- Do not automatically stage, commit, push, pull, or otherwise register newly created files with version control.
 - If a change touches Excalibur integration (loader, engine options, lifecycle hooks), suggest how to verify it (which file to open or page to refresh).
 - **Ask one clarifying question before editing** if the change touches any of: build configuration (`vite.config.*`, `tsconfig.json`), engine initialization files (`main.ts`, files containing "engine"), third-party package versions, or more than 3 files.
 - If a proposed change affects multiple sensitive areas (engine lifecycle, resource loading, public API, build config), ask exactly one focused question naming the affected file(s) and the decision needed.
 - If linters or tests fail, include the failing output in your response, revert or comment out the offending speculative change, and ask whether to proceed with a fix. Do not submit changes that cause CI to fail.
 - If referenced files are missing or imports fail, ask for the correct path or permission to add resources before making changes.
 - For dependency or build config changes (`package.json`, `tsconfig.json`), do not modify them without explicit approval — propose the change with a minimal diff and verification steps instead.
+
+## Git and Repository Restrictions
+
+- Do not run Git commands of any kind.
+- Do not use `git`, `gh`, or source-control integrations.
+- Do not inspect or modify repository history, branches, remotes, staging state, or tracked-file state.
+- If Git information or a Git operation is needed, ask the user to perform it manually.

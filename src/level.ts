@@ -12,16 +12,17 @@ import { Resources } from './resources';
 import { colorSquares } from './util/sprites';
 
 /**
- * The primary game scene.
+ * Defines the primary playable scene for the game.
  *
- * Provides lifecycle hooks for composing the level, loading its resources,
- * and responding to scene activation, updates, and drawing.
+ * The scene creates a centered tile map and fills each tile with a randomly
+ * selected color resource during initialization. The remaining lifecycle
+ * hooks are available for level-specific behavior as the game evolves.
  */
 export class MyLevel extends Scene {
   /**
-   * Initializes the level before its first update frame.
+   * Builds and adds the level's tile map before the scene begins updating.
    *
-   * @param _engine - The Excalibur engine instance
+   * @param engine - The Excalibur engine that owns this scene.
    */
   override onInitialize(engine: Engine): void {
     const tileSize = 8;
@@ -49,18 +50,18 @@ export class MyLevel extends Scene {
   }
 
   /**
-   * Registers resources that are specific to this level.
+   * Registers resources required exclusively by this level.
    *
-   * @param _loader - The loader used to load level resources
+   * @param _loader - The loader used to load scene resources.
    */
   override onPreLoad(_loader: DefaultLoader): void {
     // Add any scene specific resources to load
   }
 
   /**
-   * Runs when the level becomes the active scene.
+   * Handles activation when this level becomes the current scene.
    *
-   * @param _context - Context describing the scene activation
+   * @param _context - Context describing the scene activation.
    */
   override onActivate(_context: SceneActivationContext<unknown>): void {
     // Called when Excalibur transitions to this scene
@@ -68,9 +69,9 @@ export class MyLevel extends Scene {
   }
 
   /**
-   * Runs when the level is no longer the active scene.
+   * Handles deactivation when another scene replaces this level.
    *
-   * @param _context - Context describing the scene deactivation
+   * @param _context - Context describing the scene deactivation.
    */
   override onDeactivate(_context: SceneActivationContext): void {
     // Called when Excalibur transitions away from this scene
@@ -78,40 +79,40 @@ export class MyLevel extends Scene {
   }
 
   /**
-   * Runs every frame before built-in scene update logic.
+   * Runs immediately before Excalibur updates the scene each frame.
    *
-   * @param _engine - The Excalibur engine instance
-   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
+   * @param _engine - The Excalibur engine that is updating the scene.
+   * @param _elapsedMs - Milliseconds elapsed since the previous frame.
    */
   override onPreUpdate(_engine: Engine, _elapsedMs: number): void {
     // Called before anything updates in the scene
   }
 
   /**
-   * Runs every frame after built-in scene update logic.
+   * Runs immediately after Excalibur updates the scene each frame.
    *
-   * @param _engine - The Excalibur engine instance
-   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
+   * @param _engine - The Excalibur engine that updated the scene.
+   * @param _elapsedMs - Milliseconds elapsed since the previous frame.
    */
   override onPostUpdate(_engine: Engine, _elapsedMs: number): void {
     // Called after everything updates in the scene
   }
 
   /**
-   * Runs every frame before Excalibur draws the scene.
+   * Runs immediately before Excalibur renders the scene each frame.
    *
-   * @param _ctx - The graphics context used to draw the scene
-   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
+   * @param _ctx - The graphics context used to render the scene.
+   * @param _elapsedMs - Milliseconds elapsed since the previous frame.
    */
   override onPreDraw(_ctx: ExcaliburGraphicsContext, _elapsedMs: number): void {
     // Called before Excalibur draws to the screen
   }
 
   /**
-   * Runs every frame after Excalibur finishes drawing the scene.
+   * Runs immediately after Excalibur finishes rendering the scene each frame.
    *
-   * @param _ctx - The graphics context used to draw the scene
-   * @param _elapsedMs - Time elapsed since the last frame in milliseconds
+   * @param _ctx - The graphics context used to render the scene.
+   * @param _elapsedMs - Milliseconds elapsed since the previous frame.
    */
   override onPostDraw(_ctx: ExcaliburGraphicsContext, _elapsedMs: number): void {
     // Called after Excalibur draws to the screen

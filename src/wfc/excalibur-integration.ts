@@ -51,17 +51,7 @@ export class WFCTileMapAdapter {
     tileWidth: number,
     tileHeight: number
   ): Promise<SpriteSheet> {
-    const imageSources = await Promise.all(
-      spriteRefs.map((ref) => {
-        if (ref.startsWith('sprites/')) {
-          // Load from public directory
-          return new ImageSource(ref);
-        } else {
-          // Assume it's an Excalibur resource key
-          return new ImageSource(ref);
-        }
-      })
-    );
+    const imageSources = spriteRefs.map((ref) => new ImageSource(ref));
 
     // Create sprites from images
     const sprites = imageSources.map((img) => {
