@@ -4,207 +4,219 @@
   "symmetry": "none",
   "tiles": [
     {
-      "id": "wall_h",
-      "name": "Horizontal Wall Segment",
-      "spriteRef": "sprites/wall_horizontal.png",
+      "id": "wall_h_top",
+      "name": "Top Horizontal Wall Segment",
+      "spriteRef": "wall_h_top",
       "weight": 3,
       "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["floor", "archway_h"],
-        "left": ["wall_h", "corner_tl", "corner_bl", "t_junction_left"],
-        "right": ["wall_h", "corner_tr", "corner_br", "t_junction_right"]
+        "top": ["floor", "archway_h_top", "archway_h_bottom"],
+        "bottom": ["floor", "archway_h_top", "archway_h_bottom"],
+        "left": ["wall_h_top", "wall_h_bottom", "corner_tl", "corner_bl"],
+        "right": ["wall_h_top", "wall_h_bottom", "corner_tr", "corner_br"]
       }
     },
     {
-      "id": "wall_v",
-      "name": "Vertical Wall Segment",
-      "spriteRef": "sprites/wall_vertical.png",
+      "id": "wall_h_bottom",
+      "name": "Bottom Horizontal Wall Segment",
+      "spriteRef": "wall_h_bottom",
       "weight": 3,
       "neighbors": {
-        "top": ["floor", "archway_v"],
-        "bottom": ["floor", "archway_v"],
-        "left": ["wall_v", "corner_tl", "corner_tr", "t_junction_left"],
-        "right": ["wall_v", "corner_bl", "corner_br", "t_junction_right"]
+        "top": ["floor", "archway_h_top", "archway_h_bottom"],
+        "bottom": ["floor", "archway_h_top", "archway_h_bottom"],
+        "left": ["wall_h_top", "wall_h_bottom", "corner_tl", "corner_bl"],
+        "right": ["wall_h_top", "wall_h_bottom", "corner_tr", "corner_br"]
+      }
+    },
+    {
+      "id": "wall_v_left",
+      "name": "Left Vertical Wall Segment",
+      "spriteRef": "wall_v_left",
+      "weight": 3,
+      "neighbors": {
+        "top": ["floor", "archway_v_left", "archway_v_right"],
+        "bottom": ["floor", "archway_v_left", "archway_v_right"],
+        "left": ["wall_v_left", "wall_v_right", "corner_tl", "corner_tr"],
+        "right": ["wall_v_left", "wall_v_right", "corner_bl", "corner_br"]
+      }
+    },
+    {
+      "id": "wall_v_right",
+      "name": "Right Vertical Wall Segment",
+      "spriteRef": "wall_v_right",
+      "weight": 3,
+      "neighbors": {
+        "top": ["floor", "archway_v_left", "archway_v_right"],
+        "bottom": ["floor", "archway_v_left", "archway_v_right"],
+        "left": ["wall_v_left", "wall_v_right", "corner_tl", "corner_tr"],
+        "right": ["wall_v_left", "wall_v_right", "corner_bl", "corner_br"]
       }
     },
     {
       "id": "floor",
       "name": "Stone Floor",
-      "spriteRef": "sprites/floor_stone.png",
+      "spriteRef": "floor",
       "weight": 5,
       "neighbors": {
-        "top": ["wall_h", "wall_v", "floor"],
-        "bottom": ["wall_h", "wall_v", "floor"],
-        "left": ["wall_h", "wall_v", "floor"],
-        "right": ["wall_h", "wall_v", "floor"]
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right", "floor"],
+        "bottom": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right", "floor"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right", "floor"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right", "floor"]
       }
     },
     {
-      "id": "archway_v",
-      "name": "Vertical Archway",
-      "spriteRef": "sprites/archway_vertical.png",
+      "id": "archway_v_left",
+      "name": "Left Vertical Archway",
+      "spriteRef": "archway_v_left",
       "weight": 1,
       "neighbors": {
-        "top": ["wall_h", "wall_v"],
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "bottom": ["floor"],
-        "left": ["wall_h", "wall_v"],
-        "right": ["wall_h", "wall_v"]
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
       }
     },
     {
-      "id": "archway_h",
-      "name": "Horizontal Archway",
-      "spriteRef": "sprites/archway_horizontal.png",
+      "id": "archway_v_right",
+      "name": "Right Vertical Archway",
+      "spriteRef": "archway_v_right",
+      "weight": 1,
+      "neighbors": {
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "bottom": ["floor"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
+      }
+    },
+    {
+      "id": "archway_h_top",
+      "name": "Top Horizontal Archway",
+      "spriteRef": "archway_h_top",
       "weight": 1,
       "neighbors": {
         "top": ["floor"],
         "bottom": ["floor"],
-        "left": ["wall_h", "wall_v"],
-        "right": ["wall_h", "wall_v"]
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
+      }
+    },
+    {
+      "id": "archway_h_bottom",
+      "name": "Bottom Horizontal Archway",
+      "spriteRef": "archway_h_bottom",
+      "weight": 1,
+      "neighbors": {
+        "top": ["floor"],
+        "bottom": ["floor"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
       }
     },
     {
       "id": "corner_tl",
       "name": "Corner Top-Left",
-      "spriteRef": "sprites/corner_tl.png",
+      "spriteRef": "corner_tl",
       "weight": 2,
       "neighbors": {
         "top": ["floor", "door"],
-        "bottom": ["wall_h", "wall_v"],
-        "left": ["wall_h", "wall_v"],
+        "bottom": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "right": ["floor", "door"]
       }
     },
     {
       "id": "corner_tr",
       "name": "Corner Top-Right",
-      "spriteRef": "sprites/corner_tr.png",
+      "spriteRef": "corner_tr",
       "weight": 2,
       "neighbors": {
         "top": ["floor", "door"],
-        "bottom": ["wall_h", "wall_v"],
+        "bottom": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "left": ["floor", "door"],
-        "right": ["wall_h", "wall_v"]
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
       }
     },
     {
       "id": "corner_bl",
       "name": "Corner Bottom-Left",
-      "spriteRef": "sprites/corner_bl.png",
+      "spriteRef": "corner_bl",
       "weight": 2,
       "neighbors": {
-        "top": ["wall_h", "wall_v"],
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "bottom": ["floor", "door"],
-        "left": ["wall_h", "wall_v"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "right": ["floor", "door"]
       }
     },
     {
       "id": "corner_br",
       "name": "Corner Bottom-Right",
-      "spriteRef": "sprites/corner_br.png",
+      "spriteRef": "corner_br",
       "weight": 2,
       "neighbors": {
-        "top": ["wall_h", "wall_v"],
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
         "bottom": ["floor", "door"],
         "left": ["floor", "door"],
-        "right": ["wall_h", "wall_v"]
-      }
-    },
-    {
-      "id": "t_junction_left",
-      "name": "T-Junction Left",
-      "spriteRef": "sprites/t_junction_left.png",
-      "weight": 2,
-      "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["wall_h", "wall_v"],
-        "left": ["wall_h", "wall_v", "floor"],
-        "right": ["floor", "archway_v"]
-      }
-    },
-    {
-      "id": "t_junction_right",
-      "name": "T-Junction Right",
-      "spriteRef": "sprites/t_junction_right.png",
-      "weight": 2,
-      "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["wall_h", "wall_v"],
-        "left": ["floor", "archway_v"],
-        "right": ["wall_h", "wall_v", "floor"]
-      }
-    },
-    {
-      "id": "t_junction_up",
-      "name": "T-Junction Up",
-      "spriteRef": "sprites/t_junction_up.png",
-      "weight": 2,
-      "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["wall_h", "wall_v", "floor"],
-        "left": ["wall_h", "wall_v", "floor"],
-        "right": ["wall_h", "wall_v", "floor"]
-      }
-    },
-    {
-      "id": "t_junction_down",
-      "name": "T-Junction Down",
-      "spriteRef": "sprites/t_junction_down.png",
-      "weight": 2,
-      "neighbors": {
-        "top": ["wall_h", "wall_v", "floor"],
-        "bottom": ["floor", "archway_h"],
-        "left": ["wall_h", "wall_v", "floor"],
-        "right": ["wall_h", "wall_v", "floor"]
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
       }
     },
     {
       "id": "turret_tl",
       "name": "Turret Top-Left",
-      "spriteRef": "sprites/turret_tl.png",
+      "spriteRef": "turret_tl",
       "weight": 1,
       "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["wall_h", "wall_v"],
-        "left": ["wall_h", "wall_v"],
-        "right": ["floor", "archway_v"]
+        "top": ["floor", "archway_h_top", "archway_h_bottom"],
+        "bottom": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["floor", "archway_v_left", "archway_v_right"]
       }
     },
     {
       "id": "turret_tr",
       "name": "Turret Top-Right",
-      "spriteRef": "sprites/turret_tr.png",
+      "spriteRef": "turret_tr",
       "weight": 1,
       "neighbors": {
-        "top": ["floor", "archway_h"],
-        "bottom": ["wall_h", "wall_v"],
-        "left": ["floor", "archway_v"],
-        "right": ["wall_h", "wall_v"]
+        "top": ["floor", "archway_h_top", "archway_h_bottom"],
+        "bottom": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "left": ["floor", "archway_v_left", "archway_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
       }
     },
     {
       "id": "turret_bl",
       "name": "Turret Bottom-Left",
-      "spriteRef": "sprites/turret_bl.png",
+      "spriteRef": "turret_bl",
       "weight": 1,
       "neighbors": {
-        "top": ["wall_h", "wall_v"],
-        "bottom": ["floor", "archway_h"],
-        "left": ["wall_h", "wall_v"],
-        "right": ["floor", "archway_v"]
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "bottom": ["floor", "archway_h_top", "archway_h_bottom"],
+        "left": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "right": ["floor", "archway_v_left", "archway_v_right"]
       }
     },
     {
       "id": "turret_br",
       "name": "Turret Bottom-Right",
-      "spriteRef": "sprites/turret_br.png",
+      "spriteRef": "turret_br",
       "weight": 1,
       "neighbors": {
-        "top": ["wall_h", "wall_v"],
-        "bottom": ["floor", "archway_h"],
-        "left": ["floor", "archway_v"],
-        "right": ["wall_h", "wall_v"]
+        "top": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"],
+        "bottom": ["floor", "archway_h_top", "archway_h_bottom"],
+        "left": ["floor", "archway_v_left", "archway_v_right"],
+        "right": ["wall_h_top", "wall_h_bottom", "wall_v_left", "wall_v_right"]
+      }
+    },
+    {
+      "id": "grass",
+      "name": "Grass",
+      "spriteRef": "grass",
+      "weight": 5,
+      "neighbors": {
+        "top": ["grass", "wall_h_bottom", "archway_h_bottom"],
+        "bottom": ["grass", "wall_h_top", "archway_h_top"],
+        "left": ["grass", "wall_v_right", "archway_v_right"],
+        "right": ["grass", "wall_v_left", "archway_v_left"]
       }
     }
   ]
