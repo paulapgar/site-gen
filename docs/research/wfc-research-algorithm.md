@@ -1,180 +1,116 @@
-# Wave Function Collapse Algorithm Research
+# Wave Function Collapse Algorithm Notes
 
-## Overview
+## Scope
 
-The Wave Function Collapse (WFC) algorithm is a constraint-based generative algorithm that produces structured output from unstructured input. It's inspired by quantum mechanics, specifically the concept of wave function collapse in quantum mechanics.
+This document describes the algorithm implemented in [`src/wfc/wfc-engine.ts`](../../src/wfc/wfc-engine.ts), not an idealized or general-purpose WFC implementation. Planned changes are identified explicitly.
 
-## Core Concepts
+## Model
 
-### 1. Wave Function
+The solver works on a rectangular grid. Each cell has a domain: a `Set<string>` of tile IDs that may occupy that cell.
 
-In WFC, the "wave function" represents the state of the system at each position. It's a set of possible tiles that can occupy a given cell, with associated probabilities.
+- A domain containing more than one ID is unresolved.
+- A single-ID domain is collapsed.
+- An empty domain is a contradiction.
 
-### 2. Collapse
+Tile definitions provide directional compatibility sets. For example, a tile's `right` set contains the IDs it permits directly to its right.
 
-When a cell is determined, its wave function "collapses" to a single tile. This is the moment of constraint satisfaction.
+## Current Solve Procedure
 
-### 3. Propagation
+1. Create a new grid in which each cell permits every configured tile.
+2. Apply optional runtime cell constraints.
+3. Propagate all constrained cells through a queue until no neighbor domain changes.
+4. Find the first uncollapsed cell with the smallest domain size.
+5. Save a grid snapshot.
+6. Choose one tile from the domain with a weighted `Math.random()` selection.
+7. Propagate the changed cell through the queue.
+8. Repeat until every cell is collapsed, a contradiction cannot be recovered, or the iteration limit is reached.
 
-Once a cell collapses, neighboring cells must adjust their possible tiles based on compatibility rules.
+The iteration limit is `gridWidth * gridHeight * 10`. The private backtrack limit is 1,000.
 
-## Algorithm Steps
+## Propagation
 
-### Initialization
+For each queued source cell and each in-bounds neighbor:
 
-1. **Define the grid**: Create a 2D grid of cells
-2. **Define the tile set**: List all possible tiles
-3. **Define compatibility rules**: Specify which tiles can be adjacent to which tiles
-4. **Initialize wave function**: Each cell starts with all possible tiles
+1. Read the allowed neighbor set for the source-to-neighbor direction.
+2. If the source has multiple possible tiles, union the allowed sets of all those tiles.
+3. Intersect the neighbor's domain with that union.
+4. If the domain changed, queue the neighbor.
+5. If the domain becomes empty, report a contradiction.
 
-### Main Loop
+This is iterative queue-based propagation. It avoids recursive call-depth limits and propagates fixed floor masks before the solver makes random choices.
 
-1. **Select cell**: Choose the cell with the fewest possible tiles (minimum entropy)
-2. **Check for contradictions**: If no valid tiles remain, backtrack or restart
-3. **Collapse cell**: Choose a tile from the remaining options
-4. **Propagate constraints**: Update neighboring cells based on the collapsed tile
-5. **Repeat**: Continue until all cells are collapsed or no solution exists
+## Constrained WFC
 
-## Implementation Details
+[`WFCCellConstraint`](../../src/wfc/types.ts) narrows the domain of one cell before solving:
 
-### Data Structures
-
-```typescript
-interface Tile {
-  id: string;
-  // Tile-specific properties
-}
-
-interface Cell {
-  x: number;
-  y: number;
-  possibleTiles: Tile[];
-  collapsed: boolean;
-}
-
-interface Grid {
-  width: number;
-  height: number;
-  cells: Cell[];
-}
+```ts
+const solution = new WaveFunctionCollapse(config).solve({
+  cellConstraints: [
+    { x: 4, y: 3, allowedTileIds: ['floor'] },
+    { x: 5, y: 3, allowedTileIds: ['floor', 'floor_mossy'] },
+  ],
+});
 ```
 
-### Compatibility Rules
+The implementation:
 
-```typescript
-interface Compatibility {
-  [tileId: string]: {
-    compatibleWith: string[];
-    incompatibleWith: string[];
-  };
-}
-```
+- validates coordinates and tile IDs;
+- rejects empty allowed lists;
+- intersects repeated constraints at the same coordinate;
+- propagates constraints before entropy selection; and
+- returns `complete: false` for a valid but unsatisfiable arrangement.
 
-### Propagation Algorithm
+Constrained WFC preserves local tile compatibility. It does not guarantee global properties such as connected floors, a minimum room size, or a unique entrance. A future layout generator should create or validate those properties outside this local solver.
 
-The propagation step ensures that constraints are maintained:
+## Randomness and Reproducibility
 
-1. For each neighbor of the collapsed cell
-2. Remove incompatible tiles from the neighbor's possible tiles
-3. If a neighbor has no valid tiles, backtrack
-4. If a neighbor's possible tiles are reduced to one, collapse it
-5. Repeat until no more changes
+The solver currently uses `Math.random()` and therefore produces non-reproducible grids.
 
-## Variations
+[`SeededFloorConstraintGenerator`](../../src/wfc/types.ts) reserves a place for a deterministic seeded floor-mask generator. The current [`generateSeededFloorConstraints()`](../../src/wfc/seeded-floor-constraints.ts) implementation throws intentionally. Even after that generator exists, reproducible final maps will also require the WFC solver's random source to be seeded or injected.
 
-### 1. Basic WFC
+## Backtracking: Current Limitation
 
-Simplest form: grid-based, deterministic tile placement
+The solver snapshots every grid before a random collapse. On propagation failure, it restores and removes the most recent snapshot, then returns to the solve loop.
 
-### 2. Probabilistic WFC
+It does **not** record the chosen tile or remove it from the restored domain. A subsequent weighted selection can choose the same failing tile. This is partial recovery, not complete alternative-choice backtracking.
 
-Uses probabilities for tile selection, allowing for varied outputs
+A complete backtracking design should store a decision record containing:
 
-### 3. Asymmetric WFC
+- the snapshot before the decision;
+- the selected coordinate;
+- the tile IDs not yet tried at that coordinate; and
+- any random-state information needed for reproducibility.
 
-Allows different rules for different directions (e.g., north vs south)
+On contradiction, it should restore the decision snapshot, remove the failed choice, and retry another remaining choice. If no choices remain, it should continue to the previous decision.
 
-### 4. Multi-tile WFC
+## Rotation-Derived Tile Variants: Deferred Feature
 
-Cells can contain multiple tiles (e.g., walls, floors, decorations)
+The global symmetry configuration and its partial validation were removed. They did not rotate sprites, generate tile IDs, or add missing directional neighbor rules, so they provided no value for the explicitly oriented castle tiles.
 
-### 5. 3D WFC
+The current model requires every tile to declare its own directional neighbor rules. This supports separate top, bottom, left, and right walls as well as all four corner tiles.
 
-Extends to three-dimensional grids
+If future content authoring benefits from deriving visual rotations, implement a separate opt-in rotation-derived tile-variants feature. It must generate a distinct tile ID for each rotation, choose or transform the corresponding sprite, and rotate the directional neighbor rules. It must not silently change the behavior of existing explicit tile definitions.
 
-## Applications
+## Configuration Limitations
 
-### Game Development
-- Procedural dungeon generation
-- Level design
-- Environment generation
+[`ConfigLoader.validate()`](../../src/wfc/config-loader.ts) discovers tile IDs and validates neighbor references in the same pass. This currently rejects a neighbor reference to a tile declared later in the configuration. A two-pass validation process is required.
 
-### Art Generation
-- Texture synthesis
-- Pattern generation
-- Landscape generation
+[`ConfigLoader.buildTileMapping()`](../../src/wfc/config-loader.ts) treats an omitted neighbor side as allowing every tile. An explicitly empty array remains empty.
 
-### Data Structure Generation
-- Graph generation
-- Tree generation
-- Network generation
+## Performance Characteristics
 
-## Advantages
+- Minimum-entropy selection scans every cell per collapse.
+- Grid snapshots copy every cell domain before each random collapse.
+- Propagation uses `Array.shift()`, which is adequate for small grids but should be profiled before scaling.
+- No priority queue, bitset domain representation, or cached compatibility lookup exists.
 
-1. **Deterministic**: Same input produces same output
-2. **Scalable**: Can handle large grids
-3. **Flexible**: Easy to customize with different tile sets and rules
-4. **Visual**: Produces structured, aesthetically pleasing results
+The current implementation is suitable for validating correctness on small maps. Performance work should follow tests, correct backtracking, and a working rendering path.
 
-## Challenges
+## Future Work
 
-1. **Backtracking**: May need to backtrack when contradictions occur
-2. **Performance**: Can be slow for large grids
-3. **Parameter tuning**: Requires careful tuning of parameters
-4. **Memory usage**: Stores wave function for each cell
-
-## Implementation Considerations
-
-### Performance Optimization
-
-1. **Priority queue**: Use a priority queue for selecting cells with minimum entropy
-2. **Caching**: Cache compatibility checks
-3. **Parallelization**: Process independent cells in parallel
-4. **Early termination**: Stop when grid is complete
-
-### Memory Optimization
-
-1. **Sparse representation**: Only store non-zero probabilities
-2. **Bitmasking**: Use bitmasks for tile sets
-3. **Lazy evaluation**: Defer computation until needed
-
-## Example Use Cases
-
-### Dungeon Generation
-
-- **Tiles**: Wall, floor, door, stairs, treasure
-- **Rules**: Walls must be surrounded by walls or floors, doors connect rooms, etc.
-
-### Landscape Generation
-
-- **Tiles**: Grass, water, mountain, sand, tree
-- **Rules**: Water must be adjacent to water or sand, mountains must be surrounded by grass or water, etc.
-
-### Texture Synthesis
-
-- **Tiles**: Pixel patterns
-- **Rules**: Similar textures must be adjacent, color gradients must be maintained
-
-## References
-
-- [Wave Function Collapse on Wikipedia](https://en.wikipedia.org/wiki/Wave_function_collapse)
-- [Wave Function Collapse on GitHub](https://github.com/mxgmn/WaveFunctionCollapse)
-- [Excalibur.js Documentation](https://excaliburjs.com/docs/)
-
-## Future Research
-
-- [ ] Optimize for real-time generation
-- [ ] Add support for animated tiles
-- [ ] Implement 3D WFC
-- [ ] Add support for variable-sized tiles
-- [ ] Improve backtracking strategies
+1. Fix two-pass configuration validation.
+2. Implement alternative-choice backtracking.
+3. Consider a separate rotation-derived tile-variants feature only if content authoring requires it.
+4. Inject a seeded random source for reproducible solves.
+5. Add a deterministic seeded floor-shape generator.
+6. Add automated tests and benchmark representative maps.

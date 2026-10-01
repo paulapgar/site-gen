@@ -1,341 +1,102 @@
-# Phase 1: Research & Planning - Wave Function Collapse Castle Generation
+# Wave Function Collapse Roadmap
 
-## Overview
-This document outlines the research and planning phase for implementing a Wave Function Collapse (WFC) algorithm for castle generation in an Excalibur.js game project.
+## Objective
 
-## Research Topics
+Provide a reusable WFC module that creates tile-ID grids from directional tile rules, supports caller-provided layout constraints, and can be rendered in the Excalibur game.
 
-### 1. Wave Function Collapse Algorithm Fundamentals
+The detailed implementation status is maintained in [wfc-plan-phase1.md](./wfc-plan-phase1.md). This document is the forward-looking roadmap.
 
-#### Core Concepts to Research
-- **Wave Function Collapse Theory**: Understanding the probabilistic algorithm for generating valid tile patterns
-- **Superposition State**: How tiles exist in multiple possible states before collapse
-- **Entropy Calculation**: Methods for measuring uncertainty in tile selection
-- **Collapse Mechanism**: How tiles transition from superposition to definite states
-- **Propagation Rules**: How tile choices constrain neighboring tiles
-- **Constraint Satisfaction**: Ensuring valid tile arrangements
+## Current Baseline
 
-#### Key Algorithm Variants
-- **Standard WFC**: Basic implementation with tile and neighbor constraints
-- **Asymmetric WFC**: Supports tiles with different left/right/top/bottom properties
-- **Symmetric WFC**: Handles tiles with rotational symmetry
-- **3D WFC**: Extension to three-dimensional tilemaps
-- **Hybrid WFC**: Combining multiple approaches for complex patterns
+The repository already contains:
 
-#### Implementation Approaches
-- **Recursive Backtracking**: Depth-first search with constraint checking
-- **Iterative Propagation**: Step-by-step constraint propagation
-- **Probabilistic Selection**: Using entropy for weighted random selection
-- **Constraint Graph**: Representing tile relationships as graph structures
+- public WFC configuration, solution, constraint, and seeded-generator types in [`src/wfc/types.ts`](../../src/wfc/types.ts);
+- a queue-propagating solver with weighted random collapse in [`src/wfc/wfc-engine.ts`](../../src/wfc/wfc-engine.ts);
+- runtime constrained cells through `solve({ cellConstraints })`;
+- JSON loading and partial validation in [`src/wfc/config-loader.ts`](../../src/wfc/config-loader.ts);
+- a castle tile configuration in [`public/configs/castle-tiles.json`](../../public/configs/castle-tiles.json);
+- a sprite-oriented integration helper in [`src/wfc/excalibur-integration.ts`](../../src/wfc/excalibur-integration.ts); and
+- a deliberately throwing seeded-floor generator placeholder in [`src/wfc/seeded-floor-constraints.ts`](../../src/wfc/seeded-floor-constraints.ts).
 
-### 2. Excalibur.js Tilemap Documentation
+The module is not yet integrated into an application scene, and no committed test suite exists.
 
-#### Core Excalibur Concepts
-- **TileMap Class**: Excalibur's built-in tilemap system
-  - TileMap(width, height, tileSize)
-  - TileMap.fromImage(image, tileSize)
-  - TileMap.fromSpriteSheet(spriteSheet, tileSize)
-  - TileMap.fromGrid(grid, tileSize)
+## Design Decisions
 
-- **TileMap Properties & Methods**
-  - `tileAt(x, y)`: Get tile at position
-  - `setTileAt(x, y, tile)`: Set tile at position
-  - `tiles`: Array of tile objects
-  - `tileSize`: Size of each tile in pixels
-  - `width`, `height`: Map dimensions in tiles
-  - `draw(ctx)`: Rendering methods
-  - `update(dt)`: Update methods
+### Directional tile rules
 
-- **Tile Objects**
-  - Tile properties: `x`, `y`, `id`, `type`, `properties`
-  - Tile rendering: `draw(ctx, viewport)`
-  - Tile collision: `collidesWith(other)`
+Each tile declares allowed neighbors separately for `top`, `bottom`, `left`, and `right`. This supports asymmetric visual tiles such as left and right walls.
 
-#### SpriteSheet & Resources
-- **SpriteSheet Class**
-  - Creating sprite sheets from images
-  - SpriteSheet.fromImage(image, tileWidth, tileHeight)
-  - SpriteSheet.fromGrid(grid, tileWidth, tileHeight)
-  - SpriteSheet.fromAtlas(atlas, tileWidth, tileHeight)
+An omitted side currently permits every configured tile. An explicitly empty neighbor list permits no tile on that side, which makes it usable only at a boundary unless another future boundary representation is added.
 
-- **Resource Loading**
-  - Excalibur's resource system
-  - Loading tileset images
-  - Asset management and caching
-  - Resource paths and URLs
+### Runtime constrained layouts
 
-#### Tilemap Integration
-- **Scene Integration**
-  - Adding TileMap to Scene
-  - Scene rendering with TileMap
-  - Camera and viewport handling
-  - Scene transitions and cleanup
+Map-specific decisions belong to the solve call, not the reusable tile JSON:
 
-- **Performance Considerations**
-  - Tilemap rendering optimization
-  - Large tilemap handling
-  - Memory usage and cleanup
-  - Frame rate impact
-
-### 3. Castle Tile Patterns and Constraints
-
-#### Tile Pattern Design Principles
-- **Visual Consistency**: Matching tile styles and aesthetics
-- **Structural Integrity**: Valid architectural patterns
-- **Variety**: Multiple pattern types for interesting layouts
-- **Constraint Compatibility**: Patterns that work together
-
-#### Castle Wall Patterns
-- **Straight Walls**: Horizontal and vertical wall segments
-- **Corner Walls**: L-shaped wall pieces
-- **T-Junctions**: Walls meeting at 90-degree angles
-- **Cross Junctions**: Walls intersecting at center
-- **End Walls**: Walls at map boundaries
-- **Wall Variations**: Different wall styles (stone, brick, etc.)
-
-#### Roof Patterns
-- **Flat Roofs**: Simple, flat roof tiles
-- **Peaked Roofs**: Triangular roof sections
-- **Gabled Roofs**: Roof sections with gables
-- **Stepped Roofs**: Multi-level roof sections
-- **Roof Variations**: Different roof styles and materials
-
-#### Door and Window Patterns
-- **Doors**: Entry/exit points
-  - Single doors
-  - Double doors
-  - Arched doors
-  - Door frames and surrounds
-
-- **Windows**: Light sources and ventilation
-  - Single windows
-  - Double windows
-  - Arched windows
-  - Window frames and shutters
-
-#### Floor Patterns
-- **Interior Floors**: Inside castle rooms
-  - Stone floors
-  - Wooden floors
-  - Tile floors
-  - Floor patterns and borders
-
-- **Exterior Floors**: Outside castle
-  - Cobblestone paths
-  - Grass and dirt
-  - Stone patios
-
-#### Special Patterns
-- **Stairs**: Ascending and descending
-  - Straight stairs
-  - L-shaped stairs
-  - Spiral stairs
-
-- **Ramps**: Sloped surfaces
-  - Gentle ramps
-  - Steep ramps
-
-- **Decorations**: Aesthetic elements
-  - Towers
-  - Battlements
-  - Fountains
-  - Trees and vegetation
-
-#### Pattern Constraints
-- **Wall Constraints**
-  - Walls must connect to other walls
-  - Walls cannot overlap
-  - Wall corners must be valid
-
-- **Roof Constraints**
-  - Roofs must align with walls
-  - Roofs cannot float
-  - Roof edges must match wall edges
-
-- **Door/Window Constraints**
-  - Doors must have wall support
-  - Windows must have wall support
-  - Door/Window placement must be valid
-
-- **Floor Constraints**
-  - Floors must be within castle bounds
-  - Floors must connect to walls
-  - Floor patterns must be consistent
-
-### 4. Tile Types Definition
-
-#### Core Tile Types
-- **Ground**: Base terrain tiles
-  - Grass
-  - Dirt
-  - Stone
-  - Sand
-  - Water
-
-- **Wall**: Castle structure tiles
-  - Wall segment (horizontal)
-  - Wall segment (vertical)
-  - Wall corner (L-shape)
-  - Wall T-junction
-  - Wall cross junction
-  - Wall end
-
-- **Roof**: Castle roof tiles
-  - Flat roof
-  - Peaked roof
-  - Gabled roof
-  - Stepped roof
-
-- **Door**: Entry/exit tiles
-  - Door (single)
-  - Door (double)
-  - Door frame
-
-- **Window**: Light tiles
-  - Window (single)
-  - Window (double)
-  - Window frame
-
-- **Floor**: Interior/exterior floor tiles
-  - Stone floor
-  - Wooden floor
-  - Tile floor
-  - Cobblestone path
-  - Grass path
-
-- **Special**: Special purpose tiles
-  - Stairs (up)
-  - Stairs (down)
-  - Ramp (up)
-  - Ramp (down)
-  - Tower
-  - Battlement
-  - Fountain
-  - Tree
-  - Bush
-
-#### Tile Properties
-- **Visual Properties**
-  - Color palette
-  - Texture
-  - Opacity
-  - Animation frames
-
-- **Structural Properties**
-  - Solid: Can be walked on
-  - Collidable: Blocks movement
-  - Transparent: Allows line of sight
-  - Walkable: Can be traversed
-
-- **WFC Properties**
-  - Valid neighbors: Array of tile types that can be adjacent
-  - Symmetry: Rotational symmetry (0, 90, 180, 270 degrees)
-  - Asymmetric: Different left/right/top/bottom properties
-  - Weight: Probability weight for selection
-
-### 5. Research Documentation Organization
-
-#### File Structure
-```
-/src/wfc/
-├── research/
-│   ├── wfc-algorithm-research.md
-│   ├── wfc-variants-research.md
-│   ├── wfc-implementation-research.md
-│   ├── excalibur-tilemap-research.md
-│   ├── excalibur-spritesheet-research.md
-│   ├── excalibur-integration-research.md
-│   ├── castle-patterns-research.md
-│   ├── tile-types-research.md
-│   └── constraint-design-research.md
-├── design/
-│   ├── tile-patterns.md
-│   ├── tile-constraints.md
-│   ├── tile-types.md
-│   └── castle-architecture.md
-└── phase1-plan.md (this file)
+```ts
+const solution = new WaveFunctionCollapse(config).solve({
+  cellConstraints: [
+    { x: 10, y: 8, allowedTileIds: ['floor'] },
+    { x: 11, y: 8, allowedTileIds: ['floor'] },
+  ],
+});
 ```
 
-#### Documentation Content Guidelines
-- **Research Notes**: Key findings, links to resources, code examples
-- **Design Decisions**: Rationale for choices, trade-offs, alternatives
-- **Code Examples**: Pseudocode, TypeScript examples, implementation snippets
-- **References**: Links to documentation, papers, tutorials
-- **Questions**: Open questions to be answered during implementation
+This supports hand-authored masks, map-editor selections, objective rooms, and future procedural floor-shape generators.
 
-### 6. Phase 1 Deliverables
+### Seeded floor generation
 
-#### Required Deliverables
-1. **WFC Algorithm Research Document**
-   - Summary of WFC fundamentals
-   - Comparison of algorithm variants
-   - Recommended implementation approach
-   - Code examples and pseudocode
+A future deterministic generator accepts a numeric seed, grid dimensions, and floor tile IDs, then returns `WFCCellConstraint[]`. It does not directly mutate a WFC grid and does not alter tile-rule JSON.
 
-2. **Excalibur.js Documentation Review**
-   - Summary of TileMap API
-   - SpriteSheet usage patterns
-   - Integration examples
-   - Performance considerations
+The current `generateSeededFloorConstraints()` export is a placeholder that throws. It is an API boundary, not a working generator.
 
-3. **Castle Tile Patterns Design**
-   - Complete tile pattern catalog
-   - Pattern constraint specifications
-   - Visual examples (if available)
-   - Pattern compatibility matrix
+### Randomness
 
-4. **Tile Types Definition**
-   - Complete tile type enumeration
-   - Tile property specifications
-   - Tile type relationships
-   - WFC constraint definitions
+The current WFC solver uses `Math.random()`. It does not provide a seed or reproducible solutions. Reproducible completed maps require a future injectable or seeded random source in addition to deterministic floor-shape generation.
 
-5. **Implementation Plan**
-   - Step-by-step implementation roadmap
-   - File structure for Phase 2
-   - Dependencies and prerequisites
-   - Testing strategy
+## Milestones
 
-#### Optional Deliverables
-- **Prototype Implementation**: Simple WFC prototype for testing
-- **Tile Asset Mockups**: Visual representations of tile patterns
-- **Constraint Validation Tool**: Tool to validate pattern constraints
-- **Performance Benchmarks**: Performance analysis of different approaches
+### 1. Correct and test the configuration boundary
 
-## Research Resources
+- Fix forward-reference validation in `ConfigLoader.validate()`.
+- Decide whether the engine constructor validates configurations itself.
+- Add configuration fixtures and automated tests.
 
-### WFC Algorithm Resources
-- [Wave Function Collapse on Wikipedia](https://en.wikipedia.org/wiki/Wave_function_collapse)
-- [WFC Algorithm Tutorial](https://github.com/mxgmn/WaveFunctionCollapse)
-- [WFC Implementation Guide](https://github.com/mxgmn/WaveFunctionCollapse/blob/master/README.md)
-- [WFC Research Papers](https://arxiv.org/search/?query=wave+function+collapse&searchtype=all)
+### 2. Complete the solver
 
-### Excalibur.js Resources
-- [Excalibur.js Documentation](https://excaliburjs.com/docs/)
-- [Excalibur.js TileMap Guide](https://excaliburjs.com/docs/api/classes/TileMap.html)
-- [Excalibur.js SpriteSheet Guide](https://excaliburjs.com/docs/api/classes/SpriteSheet.html)
-- [Excalibur.js Examples](https://excaliburjs.com/docs/examples/)
+- Track untried choices in backtracking decisions.
+- Retry a decision with a different tile after a contradiction.
+- Decide whether to expose the backtrack limit and random source as solve options.
+- Add deterministic solver tests.
 
-### Castle Architecture Resources
-- [Castle Design Patterns](https://en.wikipedia.org/wiki/Castle)
-- [Medieval Architecture](https://en.wikipedia.org/wiki/Medieval_architecture)
-- [Castle Layout Examples](https://www.google.com/search?q=castle+layout+examples)
+### 3. Consider rotation-derived tile variants after Phase 1
 
-## Success Criteria
+The unused global symmetry configuration and its partial validator were removed. They did not rotate sprites, generate tile variants, or simplify the explicitly oriented castle configuration.
 
-Phase 1 is complete when:
-1. WFC algorithm fundamentals are understood and documented
-2. Excalibur.js TileMap API is reviewed and understood
-3. Castle tile patterns and constraints are designed
-4. Tile types are defined with complete specifications
-5. Research documentation is organized and accessible
-6. Implementation plan is ready for Phase 2
+If tile-authoring duplication becomes a problem, add a separate opt-in rotation-derived tile-variants feature. It should generate tile IDs, choose or transform sprites, rotate directional neighbor rules, and validate the resulting variants. This must remain separate from the core WFC configuration and is not a Phase 1 requirement.
 
-## Next Steps
+### 4. Integrate with Excalibur
 
-After completing Phase 1:
-1. Review and approve research documentation
-2. Begin Phase 2: Data Structures & Types
-3. Implement core WFC algorithm
-4. Define tile patterns
-5. Integrate with Excalibur.js
+- Create a stable mapping from `WFCConfig.tiles` IDs to sprite-sheet indexes.
+- Replace the sprite-only helper with a verified TileMap adapter, or document a different rendering approach.
+- Add a game-scene example that loads the configuration, solves a grid, and renders it.
+
+### 5. Implement seeded floor shapes
+
+- Choose a deterministic PRNG.
+- Implement a floor-mask algorithm behind `SeededFloorConstraintGenerator`.
+- Test stable output for identical seeds.
+- Test successful and unsatisfiable masks against the castle tile configuration.
+
+### 6. Improve performance only after correctness
+
+The current minimum-entropy scan is O(width × height) per collapse, and propagation uses an array queue. Profile realistic map sizes before adding a priority queue, bitsets, or cached compatibility maps.
+
+## Out of Scope for the Current Baseline
+
+- 3D WFC;
+- animated-tile support;
+- global semantic guarantees such as connected rooms or exactly one entrance;
+- dynamic rerolling of already-rendered maps;
+- automatic tile-rule learning from example images.
+
+Those features should be planned only after the correctness, integration, and testing milestones above are complete.

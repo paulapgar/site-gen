@@ -1,4 +1,4 @@
-import { WFCConfig, TileTypeInternal, TileConstraints, SymmetryMode } from './types';
+import { WFCConfig, TileTypeInternal, TileConstraints } from './types';
 
 export class ConfigLoader {
   /**
@@ -24,18 +24,6 @@ export class ConfigLoader {
     }
     if (!Number.isInteger(config.gridHeight) || config.gridHeight <= 0) {
       throw new Error('gridHeight must be a positive integer');
-    }
-
-    // Validate symmetry mode
-    const validSymmetryModes: SymmetryMode[] = [
-      'none',
-      'horizontal',
-      'vertical',
-      'both',
-      'rotational',
-    ];
-    if (config.symmetry && !validSymmetryModes.includes(config.symmetry)) {
-      throw new Error(`Invalid symmetry mode: ${config.symmetry}`);
     }
 
     // Validate tiles
@@ -94,77 +82,14 @@ export class ConfigLoader {
         }
       }
     }
-
-    // Validate symmetry requirements
-    if (config.symmetry !== 'none') {
-      // For horizontal symmetry: if A.right includes B, then B.left must include A
-      // For vertical symmetry: if A.bottom includes B, then B.top must include A
-      // For rotational: top↔right↔bottom↔left cycle
-      for (const tile of config.tiles) {
-        if (tile.neighbors) {
-          const neighbors = tile.neighbors;
-          const tileId = tile.id;
-
-          // Check horizontal symmetry
-          if (config.symmetry === 'horizontal' || config.symmetry === 'both') {
-            if (neighbors.right) {
-              for (const neighborId of neighbors.right) {
-                const leftNeighbor = config.tiles.find((t) => t.id === neighborId);
-                if (!leftNeighbor || !leftNeighbor.neighbors?.left) {
-                  throw new Error(`Horizontal symmetry violation: ${neighborId}.left must exist`);
-                }
-                if (!leftNeighbor.neighbors.left.includes(tileId)) {
-                  throw new Error(
-                    `Horizontal symmetry violation: ${neighborId}.left must include ${tileId}`
-                  );
-                }
-              }
-            }
-          }
-
-          // Check vertical symmetry
-          if (config.symmetry === 'vertical' || config.symmetry === 'both') {
-            if (neighbors.bottom) {
-              for (const neighborId of neighbors.bottom) {
-                const topNeighbor = config.tiles.find((t) => t.id === neighborId);
-                if (!topNeighbor || !topNeighbor.neighbors?.top) {
-                  throw new Error(`Vertical symmetry violation: ${neighborId}.top must exist`);
-                }
-                if (!topNeighbor.neighbors.top.includes(tileId)) {
-                  throw new Error(
-                    `Vertical symmetry violation: ${neighborId}.top must include ${tileId}`
-                  );
-                }
-              }
-            }
-          }
-
-          // Check rotational symmetry
-          if (config.symmetry === 'rotational') {
-            if (neighbors.top) {
-              for (const neighborId of neighbors.top) {
-                const rightNeighbor = config.tiles.find((t) => t.id === neighborId);
-                if (!rightNeighbor || !rightNeighbor.neighbors?.right) {
-                  throw new Error(`Rotational symmetry violation: ${neighborId}.right must exist`);
-                }
-                if (!rightNeighbor.neighbors.right.includes(tileId)) {
-                  throw new Error(
-                    `Rotational symmetry violation: ${neighborId}.right must include ${tileId}`
-                  );
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   /**
-   * Convert TileTypeConfig[] to internal Map<string, TileTypeInternal> with symmetry applied
+   * Convert TileTypeConfig[] to an internal map with directional neighbor constraints.
    */
   static buildTileMapping(config: WFCConfig): Map<string, TileTypeInternal> {
     const tileMapping = new Map<string, TileTypeInternal>();
+    const allTileIds = config.tiles.map((tile) => tile.id);
 
     for (const tileConfig of config.tiles) {
       const tileId = tileConfig.id;
@@ -172,10 +97,10 @@ export class ConfigLoader {
 
       // Build constraints from neighbors
       const constraints: TileConstraints = {
-        top: new Set(tileConfig.neighbors?.top ?? []),
-        bottom: new Set(tileConfig.neighbors?.bottom ?? []),
-        left: new Set(tileConfig.neighbors?.left ?? []),
-        right: new Set(tileConfig.neighbors?.right ?? []),
+        top: new Set(tileConfig.neighbors?.top ?? allTileIds),
+        bottom: new Set(tileConfig.neighbors?.bottom ?? allTileIds),
+        left: new Set(tileConfig.neighbors?.left ?? allTileIds),
+        right: new Set(tileConfig.neighbors?.right ?? allTileIds),
       };
 
       tileMapping.set(tileId, {

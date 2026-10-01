@@ -5,8 +5,15 @@ import {
   WFCSolution,
   GridSnapshot,
   NeighborSide,
+  WFCCellConstraint,
+  WFCSolveOptions,
 } from './types';
 import { ConfigLoader } from './config-loader';
+
+interface GridPosition {
+  x: number;
+  y: number;
+}
 
 /**
  * Wave Function Collapse engine for tile-based pattern generation.
@@ -18,7 +25,9 @@ import { ConfigLoader } from './config-loader';
  * ```ts
  * const config = { gridWidth: 16, gridHeight: 16, tiles: [...] };
  * const wfc = new WaveFunctionCollapse(config);
- * const solution = wfc.solve();
+ * const solution = wfc.solve({
+ *   cellConstraints: [{ x: 4, y: 3, allowedTileIds: ['floor'] }],
+ * });
  * ```
  */
 export class WaveFunctionCollapse {
@@ -58,9 +67,20 @@ export class WaveFunctionCollapse {
   /**
    * Run the full WFC algorithm until completion, contradiction, or max iterations.
    *
+   * @param options - Optional cell constraints applied before random collapse.
    * @returns A {@link WFCSolution} containing the resolved grid and metadata.
+   * @throws {Error} If a cell constraint has invalid coordinates, tile IDs, or no allowed tiles.
    */
-  solve(): WFCSolution {
+  solve(options: WFCSolveOptions = {}): WFCSolution {
+    this.grid = this.initializeGrid();
+    this.backtrackCount = 0;
+    this.snapshots = [];
+
+    const constrainedCells = this.applyCellConstraints(options.cellConstraints ?? []);
+    if (!this.propagateConstraints(constrainedCells)) {
+      return this.createIncompleteSolution();
+    }
+
     const maxIterations = this.gridWidth * this.gridHeight * 10;
 
     for (let iteration = 0; iteration < maxIterations; iteration++) {
@@ -79,34 +99,23 @@ export class WaveFunctionCollapse {
       const { x, y } = targetCell;
 
       // Collapse the cell
-      const success = this.collapseCell(x, y);
+      const success = this.collapseCell(x, y) && this.propagateConstraints([{ x, y }]);
 
       if (!success) {
         // Contradiction detected - try backtracking
         if (this.snapshots.length === 0 || this.backtrackCount >= this.maxBacktracks) {
           // No backtracking path or retry budget remains
-          return {
-            grid: this.grid.map((row) => row.map((cell) => cell.resolvedTileId ?? '')),
-            complete: false,
-            backtrackCount: this.backtrackCount,
-          };
+          return this.createIncompleteSolution();
         }
 
         // Restore previous snapshot
         this.restoreSnapshot(this.snapshots.pop()!);
         this.backtrackCount++;
-      } else {
-        // Propagate constraints to neighbors
-        this.propagateConstraints(x, y);
       }
     }
 
     // Max iterations reached
-    return {
-      grid: this.grid.map((row) => row.map((cell) => cell.resolvedTileId ?? '')),
-      complete: false,
-      backtrackCount: this.backtrackCount,
-    };
+    return this.createIncompleteSolution();
   }
 
   /**
@@ -131,6 +140,81 @@ export class WaveFunctionCollapse {
     }
 
     return grid;
+  }
+
+  /**
+   * Validate, combine, and apply caller-provided cell constraints.
+   *
+   * @param cellConstraints - Constraints to apply to the newly initialized grid.
+   * @returns Coordinates whose possibilities were restricted.
+   */
+  private applyCellConstraints(cellConstraints: readonly WFCCellConstraint[]): GridPosition[] {
+    if (!Array.isArray(cellConstraints)) {
+      throw new Error('cellConstraints must be an array');
+    }
+
+    const constraintsByCell = new Map<
+      string,
+      { position: GridPosition; allowedTileIds: Set<string> }
+    >();
+
+    for (let index = 0; index < cellConstraints.length; index++) {
+      const constraint = cellConstraints[index];
+      if (typeof constraint !== 'object' || constraint === null) {
+        throw new Error(`Cell constraint at index ${index} must be an object`);
+      }
+      if (
+        !Number.isInteger(constraint.x) ||
+        !Number.isInteger(constraint.y) ||
+        constraint.x < 0 ||
+        constraint.x >= this.gridWidth ||
+        constraint.y < 0 ||
+        constraint.y >= this.gridHeight
+      ) {
+        throw new Error(`Cell constraint at index ${index} has coordinates outside the grid`);
+      }
+      if (!Array.isArray(constraint.allowedTileIds) || constraint.allowedTileIds.length === 0) {
+        throw new Error(`Cell constraint at index ${index} must allow at least one tile ID`);
+      }
+
+      const allowedTileIds = new Set<string>();
+      for (const tileId of constraint.allowedTileIds) {
+        if (typeof tileId !== 'string' || !this.tileTypes.has(tileId)) {
+          throw new Error(
+            `Cell constraint at index ${index} references invalid tile ID: ${tileId}`
+          );
+        }
+        allowedTileIds.add(tileId);
+      }
+
+      const key = `${constraint.x},${constraint.y}`;
+      const existingConstraint = constraintsByCell.get(key);
+      if (!existingConstraint) {
+        constraintsByCell.set(key, {
+          position: { x: constraint.x, y: constraint.y },
+          allowedTileIds,
+        });
+        continue;
+      }
+
+      const combinedTileIds = new Set(
+        [...existingConstraint.allowedTileIds].filter((tileId) => allowedTileIds.has(tileId))
+      );
+      if (combinedTileIds.size === 0) {
+        throw new Error(
+          `Cell constraints at (${constraint.x}, ${constraint.y}) have no allowed tile IDs in common`
+        );
+      }
+      existingConstraint.allowedTileIds = combinedTileIds;
+    }
+
+    const constrainedCells: GridPosition[] = [];
+    for (const { position, allowedTileIds } of constraintsByCell.values()) {
+      this.updateCellPossibilities(this.grid[position.y][position.x], new Set(allowedTileIds));
+      constrainedCells.push(position);
+    }
+
+    return constrainedCells;
   }
 
   /**
@@ -194,10 +278,7 @@ export class WaveFunctionCollapse {
     const selectedTile = this.weightedRandomSelect(possibilities);
 
     // Update cell
-    cell.possibilities.clear();
-    cell.possibilities.add(selectedTile);
-    cell.collapsed = true;
-    cell.resolvedTileId = selectedTile;
+    this.updateCellPossibilities(cell, new Set([selectedTile]));
 
     return true;
   }
@@ -225,21 +306,17 @@ export class WaveFunctionCollapse {
   }
 
   /**
-   * Propagate constraints from a collapsed cell to all adjacent neighbors.
+   * Propagate constraints from the supplied cells until no neighboring domain changes.
    *
-   * For each neighbor, intersect its possibilities with the allowed tiles
-   * defined by the placed tile's constraints. Returns `false` if a contradiction
-   * (empty intersection) is detected.
+   * For each cell, intersect a neighbor's possibilities with the union of tiles
+   * allowed by the cell's remaining possibilities. Returns `false` if a
+   * contradiction (empty intersection) is detected.
    *
-   * @param x - Column index of the collapsed cell.
-   * @param y - Row index of the collapsed cell.
+   * @param initialCells - Cells from which propagation starts.
    * @returns `true` if propagation succeeded, `false` if a contradiction was found.
    */
-  private propagateConstraints(x: number, y: number): boolean {
-    const cell = this.grid[y][x];
-    const resolvedTileId = cell.resolvedTileId!;
-
-    // Check all four directions
+  private propagateConstraints(initialCells: readonly GridPosition[]): boolean {
+    const queue = [...initialCells];
     const directions: { dx: number; dy: number; side: NeighborSide }[] = [
       { dx: 0, dy: -1, side: 'top' },
       { dx: 0, dy: 1, side: 'bottom' },
@@ -247,38 +324,42 @@ export class WaveFunctionCollapse {
       { dx: 1, dy: 0, side: 'right' },
     ];
 
-    for (const { dx, dy, side } of directions) {
-      const nx = x + dx;
-      const ny = y + dy;
+    while (queue.length > 0) {
+      const { x, y } = queue.shift()!;
+      const cell = this.grid[y][x];
 
-      // Check bounds
-      if (nx < 0 || nx >= this.gridWidth || ny < 0 || ny >= this.gridHeight) {
-        continue;
-      }
+      for (const { dx, dy, side } of directions) {
+        const nx = x + dx;
+        const ny = y + dy;
 
-      const neighbor = this.grid[ny][nx];
+        if (nx < 0 || nx >= this.gridWidth || ny < 0 || ny >= this.gridHeight) {
+          continue;
+        }
 
-      if (neighbor.collapsed) {
-        continue;
-      }
+        const allowedTileIds = new Set<string>();
+        for (const tileId of cell.possibilities) {
+          const tile = this.tileTypes.get(tileId);
+          if (!tile) {
+            throw new Error(`Grid contains an unknown tile ID: ${tileId}`);
+          }
+          for (const allowedTileId of tile.constraints[side]) {
+            allowedTileIds.add(allowedTileId);
+          }
+        }
 
-      // Get the tile type that was just placed
-      const placedTile = this.tileTypes.get(resolvedTileId)!;
+        const neighbor = this.grid[ny][nx];
+        const nextPossibilities = new Set(
+          [...neighbor.possibilities].filter((tileId) => allowedTileIds.has(tileId))
+        );
+        if (nextPossibilities.size === 0) {
+          return false;
+        }
+        if (nextPossibilities.size === neighbor.possibilities.size) {
+          continue;
+        }
 
-      // Determine which side of the neighbor faces the placed tile
-      const facingSide = this.getFacingSide(side, dx, dy);
-
-      // Get allowed tiles for that side
-      const allowedTiles = placedTile.constraints[facingSide];
-
-      // Intersect with neighbor's possibilities
-      neighbor.possibilities = new Set(
-        Array.from(neighbor.possibilities).filter((id) => allowedTiles.has(id))
-      );
-
-      // If intersection is empty, contradiction
-      if (neighbor.possibilities.size === 0) {
-        return false;
+        this.updateCellPossibilities(neighbor, nextPossibilities);
+        queue.push({ x: nx, y: ny });
       }
     }
 
@@ -286,26 +367,28 @@ export class WaveFunctionCollapse {
   }
 
   /**
-   * Determine which side of a neighbor faces the placed tile.
+   * Set a cell's possibilities and synchronize its collapsed state.
    *
-   * Given the relative direction `(dx, dy)` from the placed tile to the neighbor,
-   * returns the neighbor side that faces the placed tile.
-   *
-   * @param side - The side of the placed tile where the neighbor resides.
-   * @param dx - Horizontal offset to the neighbor.
-   * @param dy - Vertical offset to the neighbor.
-   * @returns The neighbor side facing the placed tile.
+   * @param cell - Cell to update.
+   * @param possibilities - Replacement set of possible tile IDs.
    */
-  private getFacingSide(side: NeighborSide, dx: number, dy: number): NeighborSide {
-    // If placed tile is above (dy = -1), then neighbor's bottom faces it
-    if (dy === -1) return 'bottom';
-    // If placed tile is below (dy = 1), then neighbor's top faces it
-    if (dy === 1) return 'top';
-    // If placed tile is left (dx = -1), then neighbor's right faces it
-    if (dx === -1) return 'right';
-    // If placed tile is right (dx = 1), then neighbor's left faces it
-    if (dx === 1) return 'left';
-    return side;
+  private updateCellPossibilities(cell: GridCell, possibilities: Set<string>): void {
+    cell.possibilities = possibilities;
+    cell.collapsed = possibilities.size === 1;
+    cell.resolvedTileId = cell.collapsed ? possibilities.values().next().value : undefined;
+  }
+
+  /**
+   * Create an incomplete solution from the current grid state.
+   *
+   * @returns The partial WFC solution and its backtracking metadata.
+   */
+  private createIncompleteSolution(): WFCSolution {
+    return {
+      grid: this.grid.map((row) => row.map((cell) => cell.resolvedTileId ?? '')),
+      complete: false,
+      backtrackCount: this.backtrackCount,
+    };
   }
 
   /**
@@ -328,16 +411,14 @@ export class WaveFunctionCollapse {
   /**
    * Restore the grid state from a previously taken snapshot.
    *
-   * Resets collapse state and resolved tile IDs for all cells.
+   * Reconstructs collapse state and resolved tile IDs from restored possibilities.
    *
    * @param snapshot - The snapshot to restore.
    */
   private restoreSnapshot(snapshot: GridSnapshot): void {
     for (let y = 0; y < this.gridHeight; y++) {
       for (let x = 0; x < this.gridWidth; x++) {
-        this.grid[y][x].possibilities = new Set(snapshot.cells[y][x]);
-        this.grid[y][x].collapsed = false;
-        this.grid[y][x].resolvedTileId = undefined;
+        this.updateCellPossibilities(this.grid[y][x], new Set(snapshot.cells[y][x]));
       }
     }
   }
