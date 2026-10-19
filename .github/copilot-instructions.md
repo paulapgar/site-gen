@@ -1,7 +1,7 @@
 # Copilot Instructions — Excalibur Projects
 
 ## Agent Behavior
-- When spawning sub-agents, request the same model as the current session; if the model cannot be chosen, use the default.
+- When spawning sub-agents, request the same model as the current session.  If this cannot be done, prompt the user.
 
 ## Priority Order (resolve conflicts in this order)
 

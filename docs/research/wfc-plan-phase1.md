@@ -199,14 +199,14 @@ If future content authoring benefits from defining one canonical tile and derivi
 
 This is not required to complete Phase 1. Explicit directional tile definitions remain the current model.
 
-### Milestone 4: Rendering and integration
+### Milestone 3: Rendering and integration
 
 1. Define a stable tile-ID-to-sprite mapping from `WFCConfig.tiles`.
 2. Implement an Excalibur `TileMap` conversion compatible with the installed Excalibur version.
 3. Add a scene-level example that loads the castle configuration, runs WFC, and renders the result.
 4. Verify the generated castle visually in the running application.
 
-### Milestone 5: Seeded map generation
+### Milestone 4: Seeded map generation
 
 1. Select a seeded pseudo-random-number generator.
 2. Implement deterministic floor-shape generation behind `SeededFloorConstraintGenerator`.

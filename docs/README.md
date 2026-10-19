@@ -7,7 +7,7 @@ All research and plan documents should be stored in the `/docs/research` folder 
 ## Coding examples and prefered methods using Excalibur
 
 All the coding example files are in `/docs/coding` folder and should be referenced whenever
-areas of the Excalibur engine are used.
+objects and methods of the Excalibur engine are referenced.
 
 ## Design documents
 
