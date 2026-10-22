@@ -15,6 +15,14 @@ interface GridPosition {
   y: number;
 }
 
+interface DecisionFrame {
+  snapshot: GridSnapshot;
+  x: number;
+  y: number;
+  alternatives: string[];
+  nextAlternativeIndex: number;
+}
+
 /**
  * Wave Function Collapse engine for tile-based pattern generation.
  *
@@ -49,8 +57,8 @@ export class WaveFunctionCollapse {
   /** Number of backtracking operations performed during solve. */
   private backtrackCount: number = 0;
 
-  /** Stack of grid snapshots used for backtracking. */
-  private snapshots: GridSnapshot[] = [];
+  /** Decision points and untried tile alternatives used for backtracking. */
+  private decisions: DecisionFrame[] = [];
 
   /**
    * Create a new WFC engine instance.
@@ -74,7 +82,8 @@ export class WaveFunctionCollapse {
   solve(options: WFCSolveOptions = {}): WFCSolution {
     this.grid = this.initializeGrid();
     this.backtrackCount = 0;
-    this.snapshots = [];
+    this.decisions = [];
+    const randomSource = options.random ?? Math.random;
 
     const constrainedCells = this.applyCellConstraints(options.cellConstraints ?? []);
     if (!this.propagateConstraints(constrainedCells)) {
@@ -89,28 +98,44 @@ export class WaveFunctionCollapse {
 
       if (!targetCell) {
         // No more cells to collapse - solution complete
+        const grid = this.grid.map((row) => row.map((cell) => cell.resolvedTileId ?? ''));
+        if (grid.some((row) => row.some((tileId) => tileId.length === 0))) {
+          return this.createIncompleteSolution();
+        }
         return {
-          grid: this.grid.map((row) => row.map((cell) => cell.resolvedTileId!)),
+          grid,
           complete: true,
           backtrackCount: this.backtrackCount,
         };
       }
 
       const { x, y } = targetCell;
-
-      // Collapse the cell
-      const success = this.collapseCell(x, y) && this.propagateConstraints([{ x, y }]);
-
-      if (!success) {
-        // Contradiction detected - try backtracking
-        if (this.snapshots.length === 0 || this.backtrackCount >= this.maxBacktracks) {
-          // No backtracking path or retry budget remains
+      const alternatives = this.weightedRandomOrder(
+        Array.from(this.grid[y][x].possibilities),
+        randomSource
+      );
+      if (alternatives.length === 0) {
+        if (!this.backtrack()) {
           return this.createIncompleteSolution();
         }
+        continue;
+      }
 
-        // Restore previous snapshot
-        this.restoreSnapshot(this.snapshots.pop()!);
-        this.backtrackCount++;
+      // Record untried alternatives before committing the first weighted choice.
+      this.decisions.push({
+        snapshot: this.takeSnapshot(),
+        x,
+        y,
+        alternatives,
+        nextAlternativeIndex: 1,
+      });
+      this.updateCellPossibilities(this.grid[y][x], new Set([alternatives[0]]));
+
+      if (!this.propagateConstraints([{ x, y }])) {
+        // Contradiction detected - retry an untried alternative if possible.
+        if (!this.backtrack()) {
+          return this.createIncompleteSolution();
+        }
       }
     }
 
@@ -255,54 +280,69 @@ export class WaveFunctionCollapse {
   }
 
   /**
-   * Collapse a cell to a single tile via weighted random selection.
+   * Order possibilities by weighted random selection without replacement.
+   * The order gives backtracking a finite set of choices without retrying a
+   * tile that has already caused a contradiction at this decision point.
    *
-   * A snapshot is taken before collapse to enable backtracking.
-   *
-   * @param x - Column index of the cell.
-   * @param y - Row index of the cell.
-   * @returns `true` if collapse succeeded, `false` if no valid tiles remain.
+   * @param possibilities - Array of tile IDs to choose from.
+   * @param randomSource - Random source returning values in [0, 1).
+   * @returns Tile IDs in weighted trial order.
    */
-  private collapseCell(x: number, y: number): boolean {
-    const cell = this.grid[y][x];
-    const possibilities = Array.from(cell.possibilities);
+  private weightedRandomOrder(possibilities: string[], randomSource: () => number): string[] {
+    const remaining = [...possibilities];
+    const ordered: string[] = [];
 
-    if (possibilities.length === 0) {
-      return false; // No valid tiles
+    while (remaining.length > 0) {
+      const weights = remaining.map((id) => this.tileTypes.get(id)!.weight);
+      const maximumWeight = Math.max(...weights);
+      const normalizedWeights =
+        maximumWeight > 0 ? weights.map((weight) => weight / maximumWeight) : weights.map(() => 1);
+      const totalWeight = normalizedWeights.reduce((sum, weight) => sum + weight, 0);
+      const randomValue = randomSource();
+      if (!Number.isFinite(randomValue) || randomValue < 0 || randomValue >= 1) {
+        throw new Error('The WFC random source must return a finite number in the range [0, 1)');
+      }
+
+      let remainingWeight = randomValue * totalWeight;
+      let selectedIndex = normalizedWeights.findIndex((weight) => {
+        remainingWeight -= weight;
+        return remainingWeight < 0;
+      });
+      if (selectedIndex < 0) {
+        selectedIndex = normalizedWeights.length - 1;
+      }
+      ordered.push(remaining.splice(selectedIndex, 1)[0]);
     }
 
-    // Take snapshot before collapse for backtracking
-    this.snapshots.push(this.takeSnapshot());
-
-    // Weighted random selection
-    const selectedTile = this.weightedRandomSelect(possibilities);
-
-    // Update cell
-    this.updateCellPossibilities(cell, new Set([selectedTile]));
-
-    return true;
+    return ordered;
   }
 
   /**
-   * Select a tile from the given possibilities using weighted random selection.
+   * Restore decision snapshots until an untried alternative propagates cleanly.
    *
-   * @param possibilities - Array of tile IDs to choose from.
-   * @returns The selected tile ID.
+   * @returns `true` when a new alternative was applied, otherwise `false`.
    */
-  private weightedRandomSelect(possibilities: string[]): string {
-    // Calculate cumulative weights
-    const weights = possibilities.map((id) => this.tileTypes.get(id)!.weight);
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  private backtrack(): boolean {
+    while (this.decisions.length > 0) {
+      const decision = this.decisions[this.decisions.length - 1];
+      if (decision.nextAlternativeIndex >= decision.alternatives.length) {
+        this.decisions.pop();
+        continue;
+      }
+      if (this.backtrackCount >= this.maxBacktracks) {
+        return false;
+      }
 
-    let random = Math.random() * totalWeight;
-    for (let i = 0; i < possibilities.length; i++) {
-      random -= weights[i];
-      if (random <= 0) {
-        return possibilities[i];
+      this.restoreSnapshot(decision.snapshot);
+      const alternative = decision.alternatives[decision.nextAlternativeIndex++];
+      this.backtrackCount++;
+      this.updateCellPossibilities(this.grid[decision.y][decision.x], new Set([alternative]));
+      if (this.propagateConstraints([{ x: decision.x, y: decision.y }])) {
+        return true;
       }
     }
 
-    return possibilities[possibilities.length - 1];
+    return false;
   }
 
   /**

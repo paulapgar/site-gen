@@ -47,6 +47,11 @@ export interface WFCSolveOptions {
    * coordinate are intersected, so independent layout systems can combine them.
    */
   cellConstraints?: readonly WFCCellConstraint[];
+  /**
+   * Optional random source returning values in the range [0, 1).
+   * Inject a seeded generator to make a solve reproducible.
+   */
+  random?: () => number;
 }
 
 /** Input reserved for deterministic random floor-shape generation. */

@@ -111,6 +111,26 @@
       "name": "grass",
       "row": 3,
       "col": 2
+    },
+    {
+      "name": "inner_corner_tl",
+      "row": 4,
+      "col": 2
+    },
+    {
+      "name": "inner_corner_tr",
+      "row": 4,
+      "col": 3
+    },
+    {
+      "name": "inner_corner_bl",
+      "row": 4,
+      "col": 4
+    },
+    {
+      "name": "inner_corner_br",
+      "row": 5,
+      "col": 0
     }
   ]
 }

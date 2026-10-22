@@ -2,101 +2,91 @@
 
 ## Objective
 
-Provide a reusable WFC module that creates tile-ID grids from directional tile rules, supports caller-provided layout constraints, and can be rendered in the Excalibur game.
+Provide a reusable WFC module that creates tile-ID grids from directional tile rules, accepts caller-provided layout constraints, and renders generated maps in the Excalibur game.
 
-The detailed implementation status is maintained in [wfc-plan-phase1.md](./wfc-plan-phase1.md). This document is the forward-looking roadmap.
+The implementation record and near-term phase are maintained in [wfc-plan-phase1.md](./wfc-plan-phase1.md).
 
 ## Current Baseline
 
-The repository already contains:
+- The public WFC types support configurable output dimensions, solve-time cell constraints, and an injectable random source.
+- `ConfigLoader` validates forward neighbor references.
+- The solver propagates directional constraints, performs weighted collapse, backtracks through untried alternatives, and accepts injected randomness.
+- The linked castle tile configuration and spritemap describe a 20×20 atlas; the generated castle map is independently configured as 20×15.
+- The existing scene loads the castle configuration, combines grass-perimeter and castle-layout constraints, solves the grid, and renders it in a centered Excalibur `TileMap`.
+- The active blueprint is a centered plus: its horizontal and vertical spans are each 10 cells, with 3-cell thickness. On the current 20×15 grid this yields 51 floor cells. The WFC constraints shape its corresponding rim, retain a bottom-center archway, constrain the outer edge to grass, and exclude floor outside the footprint.
+- Grass adjacency includes orientation-matched corner and turret tiles. All four inner-corner WFC definitions and their directional rules are connected; the `inner_corner_br` sprite mapping is corrected to atlas row 5, column 0.
+- The seeded floor-shape generator remains an intentional throwing placeholder. It is separate from the working castle-layout constraint generator.
+- Vitest and a test runner remain intentionally deferred for the user to add later.
 
-- public WFC configuration, solution, constraint, and seeded-generator types in [`src/wfc/types.ts`](../../src/wfc/types.ts);
-- a queue-propagating solver with weighted random collapse in [`src/wfc/wfc-engine.ts`](../../src/wfc/wfc-engine.ts);
-- runtime constrained cells through `solve({ cellConstraints })`;
-- JSON loading and partial validation in [`src/wfc/config-loader.ts`](../../src/wfc/config-loader.ts);
-- a castle tile configuration in [`public/configs/castle-tiles.json`](../../public/configs/castle-tiles.json);
-- a sprite-oriented integration helper in [`src/wfc/excalibur-integration.ts`](../../src/wfc/excalibur-integration.ts); and
-- a deliberately throwing seeded-floor generator placeholder in [`src/wfc/seeded-floor-constraints.ts`](../../src/wfc/seeded-floor-constraints.ts).
-
-The module is not yet integrated into an application scene, and no committed test suite exists.
+The latest reported build, lint, format, focused solver validation, and HTTP preview checks passed. The plus layout has **not** had a manual screenshot or browser visual assessment.
 
 ## Design Decisions
 
 ### Directional tile rules
 
-Each tile declares allowed neighbors separately for `top`, `bottom`, `left`, and `right`. This supports asymmetric visual tiles such as left and right walls.
+Each tile declares allowed neighbors separately for `top`, `bottom`, `left`, and `right`. This supports asymmetric visual tiles such as oriented walls and corners. An omitted side permits every configured tile; an explicitly empty neighbor list permits none on that side.
 
-An omitted side currently permits every configured tile. An explicitly empty neighbor list permits no tile on that side, which makes it usable only at a boundary unless another future boundary representation is added.
+### Output and atlas dimensions
+
+WFC output dimensions are configurable through `gridWidth` and `gridHeight`. The active castle output is 20 columns × 15 rows. The castle atlas is 20×20; those atlas dimensions do not define the generated grid.
 
 ### Runtime constrained layouts
 
-Map-specific decisions belong to the solve call, not the reusable tile JSON:
+Map-specific decisions belong to the solve call rather than reusable tile-rule JSON. The grass perimeter and castle plus-layout generator provide the current constraints. The plus-layout generator is a specific initial blueprint, not a general profile system.
 
-```ts
-const solution = new WaveFunctionCollapse(config).solve({
-  cellConstraints: [
-    { x: 10, y: 8, allowedTileIds: ['floor'] },
-    { x: 11, y: 8, allowedTileIds: ['floor'] },
-  ],
-});
-```
+### Randomness and seeded shapes
 
-This supports hand-authored masks, map-editor selections, objective rooms, and future procedural floor-shape generators.
-
-### Seeded floor generation
-
-A future deterministic generator accepts a numeric seed, grid dimensions, and floor tile IDs, then returns `WFCCellConstraint[]`. It does not directly mutate a WFC grid and does not alter tile-rule JSON.
-
-The current `generateSeededFloorConstraints()` export is a placeholder that throws. It is an API boundary, not a working generator.
-
-### Randomness
-
-The current WFC solver uses `Math.random()`. It does not provide a seed or reproducible solutions. Reproducible completed maps require a future injectable or seeded random source in addition to deterministic floor-shape generation.
+The solver accepts an injected random source; callers can provide a seeded source when reproducible solves are needed. The separate `generateSeededFloorConstraints()` API remains unimplemented and throws. A future floor-shape generator should return constraints without changing generic tile rules.
 
 ## Milestones
 
-### 1. Correct and test the configuration boundary
+### 1. Configuration boundary — implemented
 
-- Fix forward-reference validation in `ConfigLoader.validate()`.
-- Decide whether the engine constructor validates configurations itself.
-- Add configuration fixtures and automated tests.
+- Forward references are supported by configuration validation.
+- The linked castle tile rules and spritemap provide adjacency and visual references.
+- The 20×20 atlas and configurable 20×15 generated map remain distinct.
 
-### 2. Complete the solver
+### 2. Solver recovery and randomness — implemented
 
-- Track untried choices in backtracking decisions.
-- Retry a decision with a different tile after a contradiction.
-- Decide whether to expose the backtrack limit and random source as solve options.
-- Add deterministic solver tests.
+- Backtracking retries untried tile alternatives after contradictions.
+- The random source is injectable; weighted selection remains in use.
+- The solver supports runtime cell constraints and directional propagation.
 
-### 3. Consider rotation-derived tile variants after Phase 1
+### 3. Scene rendering and initial castle layout — implemented; visual review pending
 
-The unused global symmetry configuration and its partial validator were removed. They did not rotate sprites, generate tile variants, or simplify the explicitly oriented castle configuration.
+- The scene loads the linked castle configuration and spritemap, solves the constrained grid, and renders a centered `TileMap`.
+- The current 20×15 layout uses the centered plus blueprint, grass perimeter, constrained rim, and bottom-center archway described above.
+- Build and preview checks do not establish visual correctness; no manual browser or screenshot assessment has been performed.
 
-If tile-authoring duplication becomes a problem, add a separate opt-in rotation-derived tile-variants feature. It should generate tile IDs, choose or transform sprites, rotate directional neighbor rules, and validate the resulting variants. This must remain separate from the core WFC configuration and is not a Phase 1 requirement.
+### 4. Proposed next phase: visually inspect and tune the plus layout
 
-### 4. Integrate with Excalibur
+1. Inspect the running scene in a browser or screenshot at the current 20×15 output size.
+2. Assess the plus proportions and centering, floor/rim junctions, corner and turret variants, archway placement, grass border, and surrounding negative space.
+3. Adjust geometry or tile weights only in response to observed issues. Introduce layout-profile abstractions only if visual inspection or additional real layouts show a need.
+4. Record the observed result and any resulting tuning; do not treat the current layout as visually verified beforehand.
 
-- Create a stable mapping from `WFCConfig.tiles` IDs to sprite-sheet indexes.
-- Replace the sprite-only helper with a verified TileMap adapter, or document a different rendering approach.
-- Add a game-scene example that loads the configuration, solves a grid, and renders it.
+Vitest remains intentionally deferred for the user to add later; it is not a prerequisite for this visual-inspection phase.
 
-### 5. Implement seeded floor shapes
+### 5. Implement seeded floor shapes — future work
 
-- Choose a deterministic PRNG.
-- Implement a floor-mask algorithm behind `SeededFloorConstraintGenerator`.
-- Test stable output for identical seeds.
-- Test successful and unsatisfiable masks against the castle tile configuration.
+- Choose a deterministic shape-generation algorithm and implement it behind `SeededFloorConstraintGenerator`.
+- Keep generated shape constraints separate from generic tile-rule JSON.
+- Once the user adds the deferred test runner, add coverage for deterministic constraints and satisfiable/unsatisfiable masks.
 
-### 6. Improve performance only after correctness
+### 6. Consider rotation-derived tile variants — conditional future work
 
-The current minimum-entropy scan is O(width × height) per collapse, and propagation uses an array queue. Profile realistic map sizes before adding a priority queue, bitsets, or cached compatibility maps.
+The unused global symmetry configuration was removed; it did not rotate sprites, generate tile variants, or simplify the explicitly oriented castle configuration. If tile-authoring duplication becomes a demonstrated problem, consider a separate opt-in feature that derives tile IDs, sprite mappings, and rotated directional rules. It is not required for the current implementation.
 
-## Out of Scope for the Current Baseline
+### 7. Improve performance only after need is demonstrated
+
+Profile realistic map sizes before adding a priority queue, bitsets, or cached compatibility maps. Prioritize observed correctness or performance needs rather than speculative optimization.
+
+## Out of Scope
 
 - 3D WFC;
 - animated-tile support;
 - global semantic guarantees such as connected rooms or exactly one entrance;
-- dynamic rerolling of already-rendered maps;
+- dynamic rerolling of already-rendered maps; and
 - automatic tile-rule learning from example images.
 
-Those features should be planned only after the correctness, integration, and testing milestones above are complete.
+Plan these only if later project requirements call for them.

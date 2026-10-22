@@ -9,64 +9,112 @@ import {
   Vector,
 } from 'excalibur';
 import { loadSpriteSheet, SpriteSheetConfig } from './util/sprites';
+import {
+  ConfigLoader,
+  generateGrassPerimeterConstraints,
+  WaveFunctionCollapse,
+} from './wfc/wfc-model';
+import { generateCastleLayoutConstraints } from './wfc/seeded-floor-constraints';
 
 /**
  * Defines the primary playable scene for the game.
  *
- * The scene creates a centered tile map and fills each tile with a randomly
- * selected sprite-sheet tile during initialization. The remaining lifecycle
- * hooks are available for level-specific behavior as the game evolves.
+ * The scene creates a centered tile map from the configured WFC output.
  */
 export class MyLevel extends Scene {
   /**
-   * Builds the centered tile map and adds it after its sprite-sheet tiles load.
+   * Builds the centered tile map and adds it after WFC config and sprites load.
    *
    * @param engine - The Excalibur engine that owns this scene.
    */
   override onInitialize(engine: Engine): void {
     const tileSize = 32;
-    const columns = 20;
-    const rows = 15;
-    const tileMap = new TileMap({
-      columns,
-      rows,
-      tileWidth: tileSize,
-      tileHeight: tileSize,
-      pos: new Vector(
-        (engine.screen.width - columns * tileSize) / 2,
-        (engine.screen.height - rows * tileSize) / 2
-      ),
-    });
+    const spriteConfigPath = './configs/spritemap.json';
+    const wfcConfigPath = './configs/castle-tiles.json';
 
-    const configPath = './configs/spritemap.json';
     void Promise.all([
-      loadSpriteSheet(configPath),
-      fetch(configPath).then((response) => {
+      loadSpriteSheet(spriteConfigPath),
+      fetch(spriteConfigPath).then((response) => {
         if (!response.ok) {
           throw new Error(`Failed to load sprite-sheet config: ${response.statusText}`);
         }
         return response.json() as Promise<SpriteSheetConfig>;
       }),
+      ConfigLoader.loadFromPath(wfcConfigPath),
     ])
-      .then(([tileImages, config]) => {
-        const sheetImage = tileImages[config.tiles[0].name];
-        const sourceTileWidth = sheetImage.image.width / config.gridWidth;
-        const sourceTileHeight = sheetImage.image.height / config.gridHeight;
-        const sprites = config.tiles.map(({ name, row, col }) =>
-          Sprite.from(tileImages[name], {
-            sourceView: {
-              x: col * sourceTileWidth,
-              y: row * sourceTileHeight,
-              width: sourceTileWidth,
-              height: sourceTileHeight,
-            },
-            destSize: { width: tileSize, height: tileSize },
-          })
-        );
+      .then(([tileImages, spriteConfig, config]) => {
+        const cellConstraints = [
+          ...generateGrassPerimeterConstraints(config.gridWidth, config.gridHeight),
+          ...generateCastleLayoutConstraints(config.gridWidth, config.gridHeight),
+        ];
+        const solution = new WaveFunctionCollapse(config).solve({ cellConstraints });
+        if (!solution.complete) {
+          throw new Error(
+            `WFC could not complete the configured grid after ${solution.backtrackCount} backtracks`
+          );
+        }
 
-        for (const tile of tileMap.tiles) {
-          const sprite = sprites[Math.floor(Math.random() * sprites.length)];
-          tile.addGraphic(sprite);
+        const columns = config.gridWidth;
+        const rows = config.gridHeight;
+        if (solution.grid.length !== rows || solution.grid.some((row) => row.length !== columns)) {
+          throw new Error('WFC solution dimensions do not match the configured grid');
+        }
+
+        const firstSpriteName = spriteConfig.tiles[0]?.name;
+        const atlasImage = firstSpriteName ? tileImages[firstSpriteName] : undefined;
+        if (!atlasImage) {
+          throw new Error('Sprite-sheet config does not provide a usable atlas image');
+        }
+        const spriteConfigsByName = new Map(
+          spriteConfig.tiles.map((spriteConfig) => [spriteConfig.name, spriteConfig])
+        );
+        const sourceTileWidth = atlasImage.image.width / spriteConfig.gridWidth;
+        const sourceTileHeight = atlasImage.image.height / spriteConfig.gridHeight;
+
+        const tileSprites = new Map<string, Sprite>();
+        for (const tileConfig of config.tiles) {
+          const spriteRef = tileConfig.spriteRef ?? tileConfig.id;
+          const spriteConfigTile = spriteConfigsByName.get(spriteRef);
+          if (!spriteConfigTile) {
+            throw new Error(
+              `WFC tile ${tileConfig.id} references missing sprite-sheet tile: ${spriteRef}`
+            );
+          }
+          tileSprites.set(
+            tileConfig.id,
+            Sprite.from(atlasImage, {
+              sourceView: {
+                x: spriteConfigTile.col * sourceTileWidth,
+                y: spriteConfigTile.row * sourceTileHeight,
+                width: sourceTileWidth,
+                height: sourceTileHeight,
+              },
+              destSize: { width: tileSize, height: tileSize },
+            })
+          );
+        }
+
+        const tileMap = new TileMap({
+          columns,
+          rows,
+          tileWidth: tileSize,
+          tileHeight: tileSize,
+          pos: new Vector(
+            (engine.screen.width - columns * tileSize) / 2,
+            (engine.screen.height - rows * tileSize) / 2
+          ),
+        });
+
+        let tileIndex = 0;
+        for (const row of solution.grid) {
+          for (const tileId of row) {
+            const sprite = tileSprites.get(tileId);
+            const tile = tileMap.tiles[tileIndex++];
+            if (!sprite || !tile) {
+              throw new Error(`WFC solution references an unknown tile ID: ${tileId}`);
+            }
+            tile.addGraphic(sprite);
+          }
         }
 
         this.add(tileMap);
