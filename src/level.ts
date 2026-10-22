@@ -2,51 +2,78 @@ import {
   DefaultLoader,
   Engine,
   ExcaliburGraphicsContext,
-  Rectangle,
   Scene,
   SceneActivationContext,
+  Sprite,
   TileMap,
   Vector,
 } from 'excalibur';
-import { Resources } from './resources';
-import { colorSquares } from './util/sprites';
+import { loadSpriteSheet, SpriteSheetConfig } from './util/sprites';
 
 /**
  * Defines the primary playable scene for the game.
  *
  * The scene creates a centered tile map and fills each tile with a randomly
- * selected color resource during initialization. The remaining lifecycle
+ * selected sprite-sheet tile during initialization. The remaining lifecycle
  * hooks are available for level-specific behavior as the game evolves.
  */
 export class MyLevel extends Scene {
   /**
-   * Builds and adds the level's tile map before the scene begins updating.
+   * Builds the centered tile map and adds it after its sprite-sheet tiles load.
    *
    * @param engine - The Excalibur engine that owns this scene.
    */
   override onInitialize(engine: Engine): void {
-    const tileSize = 8;
-    const mapSize = 20;
+    const tileSize = 32;
+    const columns = 20;
+    const rows = 15;
     const tileMap = new TileMap({
-      columns: mapSize,
-      rows: mapSize,
+      columns,
+      rows,
       tileWidth: tileSize,
       tileHeight: tileSize,
       pos: new Vector(
-        (engine.screen.width - mapSize * tileSize) / 2,
-        (engine.screen.height - mapSize * tileSize) / 2
+        (engine.screen.width - columns * tileSize) / 2,
+        (engine.screen.height - rows * tileSize) / 2
       ),
     });
-    const colors = colorSquares
-      .map(({ name }) => Resources[name])
-      .filter((resource): resource is Rectangle => resource instanceof Rectangle);
 
-    for (const tile of tileMap.tiles) {
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      tile.addGraphic(color);
-    }
+    const configPath = './configs/spritemap.json';
+    void Promise.all([
+      loadSpriteSheet(configPath),
+      fetch(configPath).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load sprite-sheet config: ${response.statusText}`);
+        }
+        return response.json() as Promise<SpriteSheetConfig>;
+      }),
+    ])
+      .then(([tileImages, config]) => {
+        const sheetImage = tileImages[config.tiles[0].name];
+        const sourceTileWidth = sheetImage.image.width / config.gridWidth;
+        const sourceTileHeight = sheetImage.image.height / config.gridHeight;
+        const sprites = config.tiles.map(({ name, row, col }) =>
+          Sprite.from(tileImages[name], {
+            sourceView: {
+              x: col * sourceTileWidth,
+              y: row * sourceTileHeight,
+              width: sourceTileWidth,
+              height: sourceTileHeight,
+            },
+            destSize: { width: tileSize, height: tileSize },
+          })
+        );
 
-    this.add(tileMap);
+        for (const tile of tileMap.tiles) {
+          const sprite = sprites[Math.floor(Math.random() * sprites.length)];
+          tile.addGraphic(sprite);
+        }
+
+        this.add(tileMap);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to create level tile map:', error);
+      });
   }
 
   /**
