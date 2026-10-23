@@ -18,7 +18,7 @@ The implementation record and near-term phase are maintained in [wfc-plan-phase1
 - The seeded floor-shape generator remains an intentional throwing placeholder. It is separate from the working castle-layout constraint generator.
 - Vitest and a test runner remain intentionally deferred for the user to add later.
 
-The latest reported build, lint, format, focused solver validation, and HTTP preview checks passed. The plus layout has **not** had a manual screenshot or browser visual assessment.
+The latest reported build, lint, format, focused solver validation, and HTTP preview checks passed. The user reports completing a visual review, including an agent preview, and confirms that the generated plus layout works correctly. No layout tuning is currently indicated.
 
 ## Design Decisions
 
@@ -52,26 +52,25 @@ The solver accepts an injected random source; callers can provide a seeded sourc
 - The random source is injectable; weighted selection remains in use.
 - The solver supports runtime cell constraints and directional propagation.
 
-### 3. Scene rendering and initial castle layout — implemented; visual review pending
+### 3. Scene rendering and initial castle layout — implemented; visual review complete (user-reported)
 
 - The scene loads the linked castle configuration and spritemap, solves the constrained grid, and renders a centered `TileMap`.
 - The current 20×15 layout uses the centered plus blueprint, grass perimeter, constrained rim, and bottom-center archway described above.
-- Build and preview checks do not establish visual correctness; no manual browser or screenshot assessment has been performed.
+- The user reports reviewing the generated layout, including an agent preview, and confirms that it works correctly. This is a user-reported result, not an independent visual assessment by this document's author.
 
-### 4. Proposed next phase: visually inspect and tune the plus layout
+### 4. Visual follow-up — conditional
 
-1. Inspect the running scene in a browser or screenshot at the current 20×15 output size.
-2. Assess the plus proportions and centering, floor/rim junctions, corner and turret variants, archway placement, grass border, and surrounding negative space.
-3. Adjust geometry or tile weights only in response to observed issues. Introduce layout-profile abstractions only if visual inspection or additional real layouts show a need.
-4. Record the observed result and any resulting tuning; do not treat the current layout as visually verified beforehand.
+- No tuning is currently indicated by the reported review.
+- Revisit geometry or tile weights only if a concrete visual issue or new requirement arises.
+- Consider layout-profile abstractions only if additional real layouts demonstrate a need.
 
-Vitest remains intentionally deferred for the user to add later; it is not a prerequisite for this visual-inspection phase.
+### 5. Proposed next work: implement seeded floor shapes
 
-### 5. Implement seeded floor shapes — future work
-
-- Choose a deterministic shape-generation algorithm and implement it behind `SeededFloorConstraintGenerator`.
-- Keep generated shape constraints separate from generic tile-rule JSON.
-- Once the user adds the deferred test runner, add coverage for deterministic constraints and satisfiable/unsatisfiable masks.
+1. Define the desired shape characteristics and guarantees, including whether generated shapes must be connected and how they handle grid boundaries.
+2. Implement `generateSeededFloorConstraints()` behind `SeededFloorConstraintGenerator`, using the existing seed, grid dimensions, and allowed floor tile IDs.
+3. Keep generated shape constraints separate from generic tile-rule JSON and pass them to `solve({ cellConstraints })`.
+4. Check deterministic constraint output, grid bounds, and the chosen shape rules. For reproducible final grids, also pass a seeded random source to the solver.
+5. Add focused coverage once the user introduces the deferred test runner.
 
 ### 6. Consider rotation-derived tile variants — conditional future work
 

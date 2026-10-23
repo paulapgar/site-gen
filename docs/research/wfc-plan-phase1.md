@@ -4,7 +4,7 @@
 
 Phase 1 establishes a reusable TypeScript Wave Function Collapse (WFC) module for the Excalibur project: configurable tile rules and output, a constrained solver, and an initial rendered castle layout.
 
-The implementation and initial scene integration are in place. The next proposed phase is manual visual inspection and, only if observations warrant it, tuning of the plus layout. The layout has not yet been visually assessed.
+The implementation and initial scene integration are in place. The user reports completing a visual review, including an agent preview, and confirms that the generated layout works correctly. No layout tuning is currently indicated. The next proposed WFC work is implementing the seeded floor-shape generator, which remains a separate placeholder.
 
 | Area | Status | Current state |
 |---|---|---|
@@ -17,7 +17,7 @@ The implementation and initial scene integration are in place. The next proposed
 | Castle layout constraints | Implemented | The active blueprint is a centered plus with a constrained rim and bottom-center archway; details follow below. |
 | Inner-corner rules and sprite | Implemented | All four inner-corner definitions and directional rules are connected. `inner_corner_br` maps to atlas row 5, column 0. |
 | Scene rendering | Implemented | The scene solves and renders the configured map as a centered Excalibur `TileMap`. |
-| Manual visual assessment | Pending | No browser or screenshot assessment of the plus layout has been performed. |
+| Manual visual assessment | Complete (user-reported) | The user reports reviewing the generated layout, including an agent preview, and confirms that it works correctly. |
 | Seeded floor-shape generation | Placeholder | `generateSeededFloorConstraints()` intentionally throws; it is separate from the working castle-layout generator. |
 | Automated test runner | Deferred | Vitest/test-runner setup is intentionally deferred for the user to add later. |
 
@@ -45,7 +45,7 @@ The scene combines `generateGrassPerimeterConstraints()` with `generateCastleLay
 - Directional straight-rim choices retain compatible wall/archway variants and configured weights. A bottom-center `archway_h_bottom` is retained.
 - The outermost grid cells are fixed to grass. Grass adjacency includes the orientation-matched corner and turret tiles needed at the perimeter.
 
-The solver constraints and successful preview response do not prove that the generated composition looks correct. Manual visual inspection remains pending.
+The user reports that visual review, including an agent preview, confirmed the generated composition works correctly. This records the user's review; it is not an independent assessment by this document's author.
 
 ### Scene integration
 
@@ -53,18 +53,18 @@ The existing scene loads the WFC configuration and sprite map, solves the combin
 
 ## Remaining and Future Work
 
-### Proposed next phase: visual inspection and tuning
+### Proposed next phase: implement seeded floor-shape generation
 
-1. Inspect the running 20×15 scene in a browser or screenshot.
-2. Assess centering and proportions, the floor/rim junctions, corner and turret variety, the bottom-center archway, grass perimeter, and negative space.
-3. Change layout geometry or tile weights only to address issues actually observed. Consider profile abstractions only if the inspection or additional real layouts demonstrate that they are useful.
-4. Record visual findings and any resulting adjustments; until then, do not describe the plus as visually verified.
+1. Define the intended shape characteristics and any required guarantees, such as connectivity and how shapes should respect grid boundaries.
+2. Implement `generateSeededFloorConstraints()` using its existing seed, grid-dimension, and floor-tile inputs. Keep generated layout constraints separate from generic tile-rule JSON and pass them through `solve({ cellConstraints })`.
+3. Check that identical inputs produce identical constraints and that generated constraints respect the chosen shape rules and grid bounds. If reproducibility of the final collapsed grid is required, provide a seeded random source to `solve()` separately.
+4. Add focused automated coverage after the user introduces the deferred test runner.
 
-Vitest and the test runner remain intentionally deferred for the user to add later. The latest reported build, lint, format, focused solver validation, and HTTP preview checks passed; an HTTP response is not a substitute for visual inspection.
+The reported visual review found the current plus layout works correctly, so no tuning is currently indicated. Revisit its geometry or tile weights only if a concrete issue or new requirement arises. Vitest and the test runner remain intentionally deferred for the user to add later. The latest reported build, lint, format, focused solver validation, and HTTP preview checks passed.
 
 ### Seeded floor-shape extension
 
-`SeededFloorConstraintGenerator` reserves an API boundary, but `generateSeededFloorConstraints()` remains a throwing placeholder. Future work may select a deterministic shape algorithm and return `WFCCellConstraint[]` for `solve({ cellConstraints })`, keeping generated layout constraints separate from generic tile-rule JSON. Automated coverage can be added after the user introduces the deferred test runner.
+`SeededFloorConstraintGenerator` reserves the API boundary, but `generateSeededFloorConstraints()` remains a throwing placeholder. Its options already provide a seed, grid dimensions, and floor tile IDs. The generator should return `WFCCellConstraint[]` for `solve({ cellConstraints })` without changing generic tile-rule JSON; the proposed next phase above outlines the remaining work.
 
 ### Conditional rotation-derived variants
 

@@ -64,9 +64,9 @@ Constrained WFC preserves local tile compatibility. It does not guarantee global
 
 ## Randomness and Reproducibility
 
-The solver currently uses `Math.random()` and therefore produces non-reproducible grids.
+The solver uses the optional random source supplied to `solve()`; if none is supplied, it defaults to `Math.random()`. Supplying a repeatable seeded source can make solver choices reproducible when the configuration and constraints are unchanged.
 
-[`SeededFloorConstraintGenerator`](../../src/wfc/types.ts) reserves a place for a deterministic seeded floor-mask generator. The current [`generateSeededFloorConstraints()`](../../src/wfc/seeded-floor-constraints.ts) implementation throws intentionally. Even after that generator exists, reproducible final maps will also require the WFC solver's random source to be seeded or injected.
+[`SeededFloorConstraintGenerator`](../../src/wfc/types.ts) reserves a place for a deterministic seeded floor-mask generator. The current [`generateSeededFloorConstraints()`](../../src/wfc/seeded-floor-constraints.ts) implementation throws intentionally. Its seed is intended to make the generated constraints reproducible; reproducible final maps additionally require supplying a repeatable random source to the WFC solver.
 
 ## Backtracking: Current Limitation
 
@@ -111,6 +111,13 @@ The current implementation is suitable for validating correctness on small maps.
 1. Fix two-pass configuration validation.
 2. Implement alternative-choice backtracking.
 3. Consider a separate rotation-derived tile-variants feature only if content authoring requires it.
-4. Inject a seeded random source for reproducible solves.
+4. Supply a seeded random source when reproducible final solves are required; the solver already accepts an injected random source and otherwise defaults to `Math.random()`.
 5. Add a deterministic seeded floor-shape generator.
 6. Add automated tests and benchmark representative maps.
+
+## References and Attribution
+
+These resources inform general WFC concepts and layout-guided generation context; they do not prescribe this project's implementation or exact seeded castle silhouette. Project-specific recommendations, including seeded floor-mask generation and castle-silhouette constraints, are recommendations for this project.
+
+- [Maxim Gumin's WaveFunctionCollapse repository and README](https://github.com/mxgmn/WaveFunctionCollapse) — core WFC concepts and constrained output.
+- [SideFX's WFC Dungeon Generator tutorial](https://www.sidefx.com/tutorials/wfc-dungeon-generator/) — layout-guided WFC and dungeon-generation context.
